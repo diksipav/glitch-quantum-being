@@ -1,15 +1,15 @@
 
 import { NavLink } from "react-router-dom";
-import { Home, BrainCircuit, Swords, Zap, BookOpenText, LayoutGrid } from "lucide-react";
+import { Home, Sparkles, CircleCheck, Zap, BookOpenText, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { to: "/", icon: Home, label: "Home" },
-  { to: "/meditation", icon: BrainCircuit, label: "Meditation" },
-  { to: "/challenge", icon: Swords, label: "Challenge" },
+  { to: "/meditation", icon: Sparkles, label: "MDTIN" },
+  { to: "/challenge", icon: CircleCheck, label: "CHLLNG" },
   { to: "/ritual", icon: Zap, label: "Ritual" },
   { to: "/journal", icon: BookOpenText, label: "Journal" },
-  { to: "/matrix", icon: LayoutGrid, label: "Matrix" },
+  { to: "/matrix", icon: Users, label: "Matrix" },
 ];
 
 export function BottomNav() {

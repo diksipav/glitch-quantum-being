@@ -1,9 +1,11 @@
-
 import { Button } from "@/components/ui/button";
 import { TerminalCard } from "@/components/ui/TerminalCard";
 import { RitualCircle } from "@/components/home/RitualCircle";
 import { useAppStore } from "@/lib/store";
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { Loader2, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -24,6 +26,64 @@ const MotionCard = motion(TerminalCard);
 
 export default function Index() {
   const { dailyRitualCompleted, dailyRitualTotal, energyLevel } = useAppStore();
+  const [onboardingStatus, setOnboardingStatus] = useState<"idle" | "processing" | "synchronizing" | "complete" | "optimized">("idle");
+
+  const handleOnboarding = () => {
+    if (onboardingStatus !== 'idle') return;
+
+    setOnboardingStatus("processing");
+    setTimeout(() => {
+      setOnboardingStatus("synchronizing");
+      setTimeout(() => {
+        setOnboardingStatus("complete");
+        useAppStore.setState({ dailyRitualCompleted: 5 });
+        setTimeout(() => {
+          setOnboardingStatus("optimized");
+        }, 1000);
+      }, 2000);
+    }, 1000);
+  };
+
+  const getButtonContent = () => {
+    switch (onboardingStatus) {
+      case "processing":
+        return "PROCESSING...";
+      case "synchronizing":
+        return (
+          <>
+            <Loader2 className="animate-spin" />
+            SYNCHRONIZING BIOFEEDBACK
+          </>
+        );
+      case "complete":
+        return (
+          <>
+            <Check />
+            ONBOARDING COMPLETE
+          </>
+        );
+      case "optimized":
+        return "SYSTEM OPTIMIZED";
+      case "idle":
+      default:
+        return "Initiate Onboarding";
+    }
+  };
+  
+  const getButtonClass = () => {
+     switch (onboardingStatus) {
+       case 'idle':
+         return "border-primary text-primary hover:bg-primary hover:text-primary-foreground";
+       case 'processing':
+       case 'synchronizing':
+       case 'complete':
+         return "bg-accent text-accent-foreground cursor-not-allowed";
+       case 'optimized':
+         return "bg-green-500 hover:bg-green-400 text-primary-foreground cursor-not-allowed";
+       default:
+         return "";
+     }
+  }
 
   return (
     <motion.div 
@@ -45,8 +105,13 @@ export default function Index() {
       </motion.p>
       
       <motion.div variants={itemVariants} className="mt-6">
-        <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase font-bold tracking-wider px-8 py-6">
-          Initiate Onboarding
+        <Button 
+          variant="outline" 
+          className={cn("uppercase font-bold tracking-wider px-8 py-6", getButtonClass())}
+          onClick={handleOnboarding}
+          disabled={onboardingStatus !== 'idle'}
+        >
+          {getButtonContent()}
         </Button>
       </motion.div>
 
