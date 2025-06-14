@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { TerminalCard } from "@/components/ui/TerminalCard";
 import { RitualCircle } from "@/components/home/RitualCircle";
@@ -17,7 +16,7 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 0 }
+  visible: { y: 0, opacity: 1 }
 };
 
 const MotionCard = motion(TerminalCard);
