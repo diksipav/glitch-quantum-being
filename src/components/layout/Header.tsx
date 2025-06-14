@@ -1,6 +1,7 @@
 
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useTextCycle } from "@/hooks/useTextCycle";
 
 const navItems = [
   { to: "/", label: "Home" },
@@ -11,7 +12,17 @@ const navItems = [
   { to: "/matrix", label: "Matrix" },
 ];
 
+const statusTexts = [
+  "RITUAL_SEQUENCE_READY",
+  "SYSTEM_SCAN_COMPLETE",
+  "QUANTUM_CONNECTION_ESTABLISHED",
+  "ANOMALY_DETECTED",
+  "PRESENCE_CONFIRMED",
+];
+
 export function Header() {
+  const statusText = useTextCycle(statusTexts);
+  
   return (
     <header className="hidden md:flex items-center justify-between p-4 fixed top-0 left-0 right-0 z-50 bg-background/50 backdrop-blur-md">
       <div className="font-display text-2xl uppercase glitch" data-text="BUGGED_BEING">
@@ -35,7 +46,7 @@ export function Header() {
         ))}
       </nav>
        <div className="font-mono text-xs text-primary uppercase flex items-center">
-         RITUAL_SEQUENCE_READY
+         {statusText}
          <span className="w-2 h-2 bg-primary inline-block ml-2 animate-blink"></span>
        </div>
     </header>

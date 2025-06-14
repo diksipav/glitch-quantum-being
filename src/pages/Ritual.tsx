@@ -2,6 +2,8 @@
 import { motion } from "framer-motion";
 import { TerminalCard } from "@/components/ui/TerminalCard";
 import { Button } from "@/components/ui/button";
+import { RitualCircle } from "@/components/home/RitualCircle";
+import { Sparkles, Wind, Activity, Check, Play } from "lucide-react";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -20,45 +22,79 @@ const itemVariants = {
 
 const MotionCard = motion(TerminalCard);
 
-const dailyRituals = [
-    { task: "Morning data-stream (Journaling)", completed: true },
-    { task: "Quantum Leap (1 min of intense focus)", completed: true },
-    { task: "Cognitive Reboot (Meditation)", completed: true },
-    { task: "Physical state sync (Stretching)", completed: false },
-    { task: "Evening protocol (Reflection)", completed: false },
+const movements = [
+    { icon: Sparkles, text: "Grounding Posture" },
+    { icon: Wind, text: "Breath Synchronization" },
+    { icon: Activity, text: "Spinal Waves" },
 ]
+
+const achievements = [true, true, true, false, false, false, false, false, false];
 
 const Ritual = () => (
   <motion.div
-    className="text-center pt-8 md:pt-16"
+    className="text-center"
     initial="hidden"
     animate="visible"
     variants={containerVariants}
   >
-    <motion.h1 variants={itemVariants} className="font-display text-2xl md:text-4xl uppercase glitch" data-text="Daily Ritual">
-      Daily Ritual
+    <motion.h1 variants={itemVariants} className="font-display text-2xl md:text-4xl uppercase glitch" data-text="Ritual Movements">
+      Ritual Movements
     </motion.h1>
-    <motion.p variants={itemVariants} className="text-muted-foreground mt-2 text-sm">
-      SEQUENCE_3_OF_5_COMPLETED
+    
+    <motion.div variants={itemVariants}>
+      <RitualCircle />
+    </motion.div>
+
+    <motion.p variants={itemVariants} className="text-muted-foreground mt-2 text-sm uppercase tracking-widest">
+      "Movement is prayer the body remembers"
     </motion.p>
-    <MotionCard variants={itemVariants} className="max-w-2xl mx-auto mt-12 text-left">
-      <h3 className="font-bold uppercase tracking-widest text-muted-foreground mb-4">TODAY'S_SEQUENCE</h3>
-      <div className="space-y-3">
-        {dailyRituals.map((ritual, i) => (
-            <div key={i} className="flex items-center">
-                <div className={`w-5 h-5 border-2 ${ritual.completed ? 'bg-primary border-primary' : 'border-primary/50'} mr-4 flex items-center justify-center`}>
-                    {ritual.completed && <div className="w-2 h-2 bg-background"/>}
-                </div>
-                <span className={`${ritual.completed ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{ritual.task}</span>
+    
+    <motion.div variants={itemVariants} className="mt-6">
+        <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase font-bold tracking-wider px-8 py-3">
+          <Play className="w-4 h-4 mr-2" />
+          Begin Daily Sequence (12min)
+        </Button>
+    </motion.div>
+
+    <motion.div 
+      variants={containerVariants}
+      className="grid grid-cols-3 gap-4 mt-8 max-w-2xl mx-auto"
+    >
+        {movements.map((move, i) => (
+            <MotionCard key={i} variants={itemVariants} className="flex flex-col items-center justify-center p-4 aspect-square">
+                <move.icon className="w-8 h-8 text-primary" />
+                <span className="text-xs uppercase text-center mt-3 tracking-wider">{move.text}</span>
+            </MotionCard>
+        ))}
+    </motion.div>
+    
+    <MotionCard variants={itemVariants} className="max-w-2xl mx-auto mt-8 text-left p-4">
+      <h3 className="font-bold uppercase tracking-widest text-muted-foreground mb-4 text-sm">Progress</h3>
+      <div className="flex justify-between items-center font-mono">
+        <div>
+            <p className="text-xs text-muted-foreground">CURRENT STREAK</p>
+            <p className="text-primary text-xl font-bold">7 DAYS</p>
+        </div>
+        <div className="text-right">
+            <p className="text-xs text-muted-foreground">LONGEST STREAK</p>
+            <p className="text-primary text-xl font-bold">21 DAYS</p>
+        </div>
+      </div>
+    </MotionCard>
+
+    <MotionCard variants={itemVariants} className="max-w-2xl mx-auto mt-8 text-left p-4">
+       <div className="flex justify-between items-center mb-4">
+         <h3 className="font-bold uppercase tracking-widest text-muted-foreground text-sm">Achievements</h3>
+         <p className="font-mono text-sm text-primary">3/9 UNLOCKED</p>
+       </div>
+      <div className="grid grid-cols-3 gap-4">
+        {achievements.map((unlocked, i) => (
+            <div key={i} className={`aspect-square border-2 flex items-center justify-center ${unlocked ? 'border-primary bg-primary/10' : 'border-border'}`}>
+                {unlocked && <Check className="w-8 h-8 text-primary" />}
             </div>
         ))}
       </div>
     </MotionCard>
-    <motion.div variants={itemVariants} className="mt-8">
-        <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase font-bold tracking-wider px-8 py-6">
-          Mark Next as Complete
-        </Button>
-      </motion.div>
   </motion.div>
 );
 export default Ritual;

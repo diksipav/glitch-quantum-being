@@ -26,19 +26,11 @@ export default function Index() {
 
   return (
     <motion.div 
-      className="text-center pt-8 md:pt-16"
+      className="text-center"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
     >
-      <div className="md:hidden font-display text-2xl uppercase glitch mb-4" data-text="BUGGED_BEING">
-        BUGGED_BEING
-      </div>
-      <div className="md:hidden font-mono text-xs text-primary uppercase flex items-center justify-center mb-8">
-         RITUAL_SEQUENCE_READY
-         <span className="w-2 h-2 bg-primary inline-block ml-2 animate-blink"></span>
-       </div>
-
       <RitualCircle />
       
       <motion.h1 className="font-display text-2xl uppercase tracking-widest" variants={itemVariants}>
@@ -51,14 +43,14 @@ export default function Index() {
         Your presence has been detected in this quantum terminal. Proceed with curiosity.
       </motion.p>
       
-      <motion.div variants={itemVariants} className="mt-8">
+      <motion.div variants={itemVariants} className="mt-6">
         <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase font-bold tracking-wider px-8 py-6">
           Initiate Onboarding
         </Button>
       </motion.div>
 
       <motion.div 
-        className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-12 max-w-2xl mx-auto"
+        className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-10 max-w-2xl mx-auto"
         variants={containerVariants}
       >
         <MotionCard variants={itemVariants} className="text-left">
@@ -71,7 +63,7 @@ export default function Index() {
         </MotionCard>
       </motion.div>
 
-      <motion.div className="mt-12 max-w-2xl mx-auto text-left" variants={containerVariants}>
+      <motion.div className="mt-10 max-w-2xl mx-auto text-left" variants={containerVariants}>
         <h2 className="font-display text-xl uppercase tracking-widest mb-4">Recent Activity</h2>
         <MotionCard variants={itemVariants} className="mb-4">
           <div className="flex justify-between items-center text-xs text-muted-foreground uppercase">
