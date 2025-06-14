@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { MainLayout } from "./components/layout/MainLayout";
-import Medit from "./pages/Medit";
+import Meditation from "./pages/Meditation";
 import Challenge from "./pages/Challenge";
 import Ritual from "./pages/Ritual";
 import Journal from "./pages/Journal";
@@ -24,7 +24,7 @@ const App = () => (
         <Routes>
           <Route element={<MainLayout />}>
             <Route path="/" element={<Index />} />
-            <Route path="/medit" element={<Medit />} />
+            <Route path="/meditation" element={<Meditation />} />
             <Route path="/challenge" element={<Challenge />} />
             <Route path="/ritual" element={<Ritual />} />
             <Route path="/journal" element={<Journal />} />
