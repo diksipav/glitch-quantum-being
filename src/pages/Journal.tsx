@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { TerminalCard } from "@/components/ui/TerminalCard";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { ChevronDown, Eye } from "lucide-react";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -21,46 +22,71 @@ const itemVariants = {
 
 const MotionCard = motion(TerminalCard);
 
+const pastEntries = [
+    {
+        date: "27.05.3023",
+        text: "My mind today is a desert of shifting silica dunes, each thought particle catching the twin suns' glare..."
+    },
+    {
+        date: "26.05.3023",
+        text: "A dense fungal forest where bioluminescent spores drift upward in lazy spirals. Each..."
+    }
+];
+
 const Journal = () => (
   <motion.div
-    className="pt-8 md:pt-16 max-w-2xl mx-auto"
+    className="max-w-2xl mx-auto"
     initial="hidden"
     animate="visible"
     variants={containerVariants}
   >
-    <motion.h1 variants={itemVariants} className="text-center font-display text-2xl md:text-4xl uppercase glitch" data-text="Journal">
-      Journal
+    <motion.h1 variants={itemVariants} className="text-center font-display text-2xl md:text-4xl uppercase glitch" data-text="Creative Journal">
+      Creative Journal
     </motion.h1>
-    <motion.p variants={itemVariants} className="text-center text-muted-foreground mt-2 text-sm">
-      LOG_YOUR_ANOMALIES
-    </motion.p>
     
-    <MotionCard variants={itemVariants} className="mt-12 text-left">
-      <h3 className="font-bold uppercase tracking-widest text-muted-foreground mb-4">New Entry</h3>
-      <Textarea placeholder="Observed a glitch in the simulation today..." className="bg-terminal border-primary/20 focus-visible:ring-primary h-40"/>
-      <div className="flex justify-end mt-4">
-        <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase font-bold tracking-wider">
-          Commit to Log
+    <MotionCard variants={itemVariants} className="mt-8 p-4 text-left">
+      <div className="flex justify-between items-center">
+        <h3 className="font-bold uppercase tracking-widest text-muted-foreground text-sm">Today's Prompt</h3>
+        <Button variant="ghost" size="sm" className="text-xs h-7">CHANGE <ChevronDown className="w-4 h-4 ml-1"/></Button>
+      </div>
+      <p className="mt-2 text-foreground/90">"Describe your current mental state as if it were a landscape on an alien planet."</p>
+      <Textarea placeholder="BEGIN TRANSMISSION..." className="bg-terminal border-primary/20 focus-visible:ring-primary h-32 mt-4"/>
+      <div className="flex justify-center mt-4">
+        <Button variant="ghost" className="uppercase text-primary tracking-widest">
+          Save Entry
         </Button>
       </div>
     </MotionCard>
 
-    <motion.div className="mt-12 text-left" variants={containerVariants}>
-      <h2 className="font-display text-xl uppercase tracking-widest mb-4">Recent Logs</h2>
-      <MotionCard variants={itemVariants} className="mb-4">
-        <div className="flex justify-between items-center text-xs text-muted-foreground uppercase">
-          <span>Log Entry #472</span>
-          <span>1 day ago</span>
-        </div>
-        <p className="mt-2 text-foreground/90">"The same black cat crossed my path twice. The simulation is getting lazy with its assets..."</p>
-      </MotionCard>
-      <MotionCard variants={itemVariants}>
-        <div className="flex justify-between items-center text-xs text-muted-foreground uppercase">
-          <span>Log Entry #471</span>
-          <span>3 days ago</span>
-        </div>
-        <p className="mt-2 text-foreground/90">"Dreamt in perfect binary code. Woke up feeling... compiled."</p>
-      </MotionCard>
+    <MotionCard variants={itemVariants} className="mt-8 p-4 text-left">
+      <div className="flex justify-between items-center">
+          <h3 className="font-bold uppercase tracking-widest text-muted-foreground text-sm">Cosmic Tutor</h3>
+          <div className="flex items-center text-xs text-green-400">
+            <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
+            ONLINE
+          </div>
+      </div>
+      <p className="mt-3 text-sm text-foreground/80"><span className="text-primary">COSMIC_TUTOR:</span> Greetings, star-born scribe. I perceive you're grappling with today's prompt. Would you like to explore this mental landscape together?</p>
+      <Button variant="ghost" className="w-full mt-4 text-primary text-xs justify-start p-2">
+        COMMUNE WITH THE COSMOS...
+      </Button>
+    </MotionCard>
+
+    <motion.div className="mt-8 text-left" variants={containerVariants}>
+      <h2 className="font-display text-xl uppercase tracking-widest mb-4">Past Entries</h2>
+      {pastEntries.map((entry, index) => (
+          <MotionCard key={index} variants={itemVariants} className="mb-4 p-4">
+            <div className="flex justify-between items-start">
+                <div>
+                    <div className="text-xs text-muted-foreground uppercase">{entry.date}</div>
+                    <p className="mt-2 text-foreground/90 text-sm">"{entry.text}"</p>
+                </div>
+                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                    <Eye className="h-4 w-4" />
+                </Button>
+            </div>
+          </MotionCard>
+      ))}
     </motion.div>
   </motion.div>
 );

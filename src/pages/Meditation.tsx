@@ -1,6 +1,11 @@
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { TerminalCard } from "@/components/ui/TerminalCard";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { MoreHorizontal, Plus } from "lucide-react";
+import { BarChart, Bar, ResponsiveContainer } from 'recharts';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -19,57 +24,105 @@ const itemVariants = {
 
 const MotionCard = motion(TerminalCard);
 
-const meditationSessions = [
+const pastSessions = [
   {
-    title: "Quantum Breath",
-    description: "Synchronize your breath with the waveform of a virtual particle.",
-    duration: "10 MIN"
+    id: "#112",
+    title: "Cosmic Whisper",
+    description: "Pretend every sound you hear is a secret message from the universe trying to communicate in code.",
+    practiced: "3d ago",
+    focus: "+12%"
   },
   {
-    title: "Observing the Observer",
-    description: "Become aware of the awareness that is watching your thoughts.",
-    duration: "15 MIN"
+    id: "#87",
+    title: "Quantum Perspective",
+    description: "Imagine you're simultaneously in all possible versions of your current location across the multiverse.",
+    practiced: "1w ago",
+    focus: "+23%"
   },
   {
-    title: "Entangled Mind",
-    description: "A guided meditation on the interconnectedness of all consciousness.",
-    duration: "20 MIN"
-  },
-  {
-    title: "Glitch in the Stillness",
-    description: "Find the beauty in imperfections during a silent meditation.",
-    duration: "12 MIN"
+    id: "#203",
+    title: "Temporal Dislocation",
+    description: "Picture that you're actually remembering this moment from 10 years in the future.",
+    practiced: "2d ago",
+    focus: "+17%"
   }
 ];
 
-const Meditation = () => (
-  <motion.div
-    className="text-center pt-8 md:pt-16"
-    initial="hidden"
-    animate="visible"
-    variants={containerVariants}
-  >
-    <motion.h1 variants={itemVariants} className="font-display text-2xl md:text-4xl uppercase glitch" data-text="Absurd Meditation">
-      Absurd Meditation
-    </motion.h1>
-    <motion.p variants={itemVariants} className="text-muted-foreground mt-2 text-sm">
-      INITIATE_MEDITATION_SEQUENCE
-    </motion.p>
+const chartData = [
+  { value: 10 }, { value: 8 }, { value: 12 }, { value: 9 }, { value: 11 }, { value: 13 }, { value: 10 }, { value: 12 },
+];
+
+const Meditation = () => {
+  const [duration, setDuration] = useState(20);
+
+  return (
     <motion.div
+      className="max-w-2xl mx-auto"
+      initial="hidden"
+      animate="visible"
       variants={containerVariants}
-      className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-12 max-w-2xl mx-auto text-left"
     >
-      {meditationSessions.map((session, index) => (
-        <MotionCard key={index} variants={itemVariants} className="cursor-pointer hover:border-primary/80 transition-colors">
-          <div className="flex justify-between items-center">
-            <h3 className="font-bold uppercase tracking-widest text-primary">{session.title}</h3>
-            <span className="text-xs text-muted-foreground">{session.duration}</span>
+      <motion.h1 variants={itemVariants} className="text-center font-display text-2xl md:text-4xl uppercase glitch" data-text="Absurd Meditations">
+        Absurd Meditations
+      </motion.h1>
+      
+      <MotionCard variants={itemVariants} className="mt-8 p-4 text-left">
+        <div className="flex justify-between items-center">
+          <h3 className="font-bold uppercase tracking-widest text-muted-foreground text-sm">Today's Focus</h3>
+          <div className="flex items-center space-x-1">
+            {[5, 10, 20].map(d => (
+              <Button key={d} onClick={() => setDuration(d)} variant={duration === d ? 'secondary' : 'ghost'} size="sm" className="text-xs h-7 px-2">
+                {d}:00
+              </Button>
+            ))}
           </div>
-          <p className="mt-2 text-foreground/90">{session.description}</p>
-        </MotionCard>
-      ))}
+        </div>
+        <p className="mt-4 text-foreground/90">"Visualize your thoughts as confused tourists in a city where all street signs are written in an alien language. Watch them wander."</p>
+        <div className="mt-4 flex justify-between items-center">
+          <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase font-bold tracking-wider">
+            Begin ({duration} min)
+          </Button>
+          <div className="text-right">
+            <h4 className="text-xs uppercase text-muted-foreground">Ambient Frequency</h4>
+            <div className="w-32 h-8 mt-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[2, 2, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      </MotionCard>
+      
+      <motion.div className="mt-8 text-left" variants={containerVariants}>
+        {pastSessions.map((session) => (
+          <MotionCard key={session.id} variants={itemVariants} className="mb-4 p-4">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-bold uppercase tracking-widest text-primary">{session.id} - {session.title}</h3>
+                <p className="mt-2 text-foreground/90 text-sm">{session.description}</p>
+              </div>
+              <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="mt-3 flex justify-between items-center text-xs font-mono uppercase text-muted-foreground">
+              <span>Last Practiced: {session.practiced}</span>
+              <span className="text-green-400">Focus: {session.focus}</span>
+            </div>
+          </MotionCard>
+        ))}
+      </motion.div>
+      
+      <motion.div variants={itemVariants} className="mt-8">
+        <Button variant="outline" className="text-primary border-primary/50 w-full">
+          <Plus className="w-4 h-4 mr-2"/>
+          Generate Random Meditation
+        </Button>
+      </motion.div>
     </motion.div>
-  </motion.div>
-);
+  );
+};
 
 export default Meditation;

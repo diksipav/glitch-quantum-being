@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { TerminalCard } from "@/components/ui/TerminalCard";
 import { RitualCircle } from "@/components/home/RitualCircle";
@@ -50,34 +51,34 @@ export default function Index() {
       </motion.div>
 
       <motion.div 
-        className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-10 max-w-2xl mx-auto"
+        className="grid grid-cols-2 gap-4 mt-10 max-w-2xl mx-auto"
         variants={containerVariants}
       >
-        <MotionCard variants={itemVariants} className="text-left">
-          <h3 className="font-bold uppercase tracking-widest text-muted-foreground">Daily Ritual</h3>
-          <p className="text-2xl font-bold mt-2 text-primary">{dailyRitualCompleted}/{dailyRitualTotal} <span className="text-sm font-normal text-foreground">Completed</span></p>
+        <MotionCard variants={itemVariants} className="text-left p-4">
+          <h3 className="font-bold uppercase tracking-wider text-muted-foreground text-xs">Daily Ritual</h3>
+          <p className="text-lg font-bold mt-1 text-foreground">Completed: <span className="text-primary">{dailyRitualCompleted}/{dailyRitualTotal}</span></p>
         </MotionCard>
-        <MotionCard variants={itemVariants} className="text-left">
-          <h3 className="font-bold uppercase tracking-widest text-muted-foreground">Energy Level</h3>
-          <p className="text-2xl font-bold mt-2 text-primary">{energyLevel}%</p>
+        <MotionCard variants={itemVariants} className="text-left p-4">
+          <h3 className="font-bold uppercase tracking-wider text-muted-foreground text-xs">Energy Level</h3>
+          <p className="text-lg font-bold mt-1 text-primary">{energyLevel}%</p>
         </MotionCard>
       </motion.div>
 
       <motion.div className="mt-10 max-w-2xl mx-auto text-left" variants={containerVariants}>
         <h2 className="font-display text-xl uppercase tracking-widest mb-4">Recent Activity</h2>
-        <MotionCard variants={itemVariants} className="mb-4">
+        <MotionCard variants={itemVariants} className="mb-4 p-4">
           <div className="flex justify-between items-center text-xs text-muted-foreground uppercase">
             <span>Absurd Meditation #47</span>
             <span>2h ago</span>
           </div>
-          <p className="mt-2 text-foreground/90">"Imagine you're a sentient dust particle in a cosmic library"</p>
+          <p className="mt-2 text-foreground/90 text-sm">"Imagine you're a sentient dust particle in a cosmic library"</p>
         </MotionCard>
-        <MotionCard variants={itemVariants}>
+        <MotionCard variants={itemVariants} className="p-4">
           <div className="flex justify-between items-center text-xs text-muted-foreground uppercase">
             <span>Presence Challenge</span>
             <span>5h ago</span>
           </div>
-          <p className="mt-2 text-foreground/90">"Notice 3 unexpected textures in your environment"</p>
+          <p className="mt-2 text-foreground/90 text-sm">"Notice 3 unexpected textures in your environment"</p>
         </MotionCard>
       </motion.div>
     </motion.div>
