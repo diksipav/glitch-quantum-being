@@ -12,6 +12,7 @@ import Challenge from "./pages/Challenge";
 import Ritual from "./pages/Ritual";
 import Journal from "./pages/Journal";
 import Matrix from "./pages/Matrix";
+import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/ritual" element={<Ritual />} />
             <Route path="/journal" element={<Journal />} />
             <Route path="/matrix" element={<Matrix />} />
+            <Route path="/auth" element={<Auth />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

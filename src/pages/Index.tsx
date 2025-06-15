@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { TerminalCard } from "@/components/ui/TerminalCard";
 import { RitualCircle } from "@/components/home/RitualCircle";
@@ -6,6 +7,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { Loader2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -27,6 +29,7 @@ const MotionCard = motion(TerminalCard);
 export default function Index() {
   const { dailyRitualCompleted, dailyRitualTotal, energyLevel } = useAppStore();
   const [onboardingStatus, setOnboardingStatus] = useState<"idle" | "processing" | "synchronizing" | "complete" | "optimized">("idle");
+  const navigate = useNavigate();
 
   const handleOnboarding = () => {
     if (onboardingStatus !== 'idle') return;
@@ -36,9 +39,9 @@ export default function Index() {
       setOnboardingStatus("synchronizing");
       setTimeout(() => {
         setOnboardingStatus("complete");
-        useAppStore.setState({ dailyRitualCompleted: 5 });
+        // After showing completion, redirect to the auth page
         setTimeout(() => {
-          setOnboardingStatus("optimized");
+          navigate('/auth');
         }, 1000);
       }, 2000);
     }, 1000);
