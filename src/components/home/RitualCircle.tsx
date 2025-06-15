@@ -2,8 +2,11 @@
 import { motion } from "framer-motion";
 
 const planets = [
+  { radius: 25, size: 4, duration: 12 },
   { radius: 45, size: 6, duration: 18 },
+  { radius: 60, size: 4, duration: 25 },
   { radius: 70, size: 8, duration: 30 },
+  { radius: 85, size: 4, duration: 40 },
   { radius: 95, size: 6, duration: 45 },
 ];
 

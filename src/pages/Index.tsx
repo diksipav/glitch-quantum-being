@@ -97,7 +97,7 @@ export default function Index() {
       animate="visible"
       variants={containerVariants}
     >
-      <div className="-mt-12 md:-mt-8">
+      <div className="-mt-12 md:-mt-8 pt-0.5">
         <RitualCircle />
       </div>
       
@@ -144,23 +144,25 @@ export default function Index() {
         </MotionCard>
       </motion.div>
 
-      <motion.div className="mt-10 max-w-2xl mx-auto text-left" variants={containerVariants}>
-        <h2 className="font-display text-xl uppercase tracking-widest mb-4">Recent Activity</h2>
-        <MotionCard variants={itemVariants} className="mb-4 p-4">
-          <div className="flex justify-between items-center text-xs text-muted-foreground uppercase">
-            <span>Absurd Meditation #47</span>
-            <span>2h ago</span>
-          </div>
-          <p className="mt-2 text-foreground/90 text-sm">"Imagine you're a sentient dust particle in a cosmic library"</p>
-        </MotionCard>
-        <MotionCard variants={itemVariants} className="p-4">
-          <div className="flex justify-between items-center text-xs text-muted-foreground uppercase">
-            <span>Presence Challenge</span>
-            <span>5h ago</span>
-          </div>
-          <p className="mt-2 text-foreground/90 text-sm">"Notice 3 unexpected textures in your environment"</p>
-        </MotionCard>
-      </motion.div>
+      {!authLoading && user && (
+        <motion.div className="mt-10 max-w-2xl mx-auto text-left" variants={containerVariants}>
+          <h2 className="font-display text-xl uppercase tracking-widest mb-4">Recent Activity</h2>
+          <MotionCard variants={itemVariants} className="mb-4 p-4">
+            <div className="flex justify-between items-center text-xs text-muted-foreground uppercase">
+              <span>Absurd Meditation #47</span>
+              <span>2h ago</span>
+            </div>
+            <p className="mt-2 text-foreground/90 text-sm">"Imagine you're a sentient dust particle in a cosmic library"</p>
+          </MotionCard>
+          <MotionCard variants={itemVariants} className="p-4">
+            <div className="flex justify-between items-center text-xs text-muted-foreground uppercase">
+              <span>Presence Challenge</span>
+              <span>5h ago</span>
+            </div>
+            <p className="mt-2 text-foreground/90 text-sm">"Notice 3 unexpected textures in your environment"</p>
+          </MotionCard>
+        </motion.div>
+      )}
     </motion.div>
   );
 }

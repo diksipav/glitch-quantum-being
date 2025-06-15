@@ -5,7 +5,7 @@ import { TerminalCard } from '@/components/ui/TerminalCard';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
-import { Sparkles, Wind, Activity, Flame, Dumbbell, Mountain, Flower2, Play } from 'lucide-react';
+import { Sparkles, Wind, Activity, Flame, Dumbbell, Mountain, Flower2, Play, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const rituals = [
@@ -19,16 +19,17 @@ const rituals = [
 ];
 
 const timeOptions = [
-    { label: "13:00", value: 13 },
-    { label: "33:00", value: 33 },
-    { label: "01:03:00", value: 63 },
+    { label: "00:13", value: 13 },
+    { label: "00:33", value: 33 },
+    { label: "01:03", value: 63 },
 ];
 
 interface RitualSelectionProps {
     onStart: (ritual: string, durationInMinutes: number) => void;
+    onCancel: () => void;
 }
 
-export const RitualSelection = ({ onStart }: RitualSelectionProps) => {
+export const RitualSelection = ({ onStart, onCancel }: RitualSelectionProps) => {
     const [selectedRitual, setSelectedRitual] = useState<string | null>(null);
     const [selectedTime, setSelectedTime] = useState<number | null>(null);
 
@@ -41,7 +42,12 @@ export const RitualSelection = ({ onStart }: RitualSelectionProps) => {
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl mx-auto space-y-8">
             <TerminalCard className="p-4 text-left">
-                <h3 className="font-bold uppercase tracking-widest text-muted-foreground mb-4 text-sm">Choose Your Ritual</h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="font-bold uppercase tracking-widest text-muted-foreground text-sm">Choose Your Ritual</h3>
+                  <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 h-8 w-8" onClick={onCancel}>
+                      <X className="h-4 w-4" />
+                  </Button>
+                </div>
                 <RadioGroup value={selectedRitual || ""} onValueChange={setSelectedRitual}>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         {rituals.map((ritual) => (

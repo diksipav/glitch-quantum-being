@@ -1,7 +1,11 @@
 
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useTextCycle } from "@/hooks/useTextCycle";
+import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 
 const navItems = [
   { to: "/", label: "Home" },
@@ -22,6 +26,13 @@ const statusTexts = [
 
 export function Header() {
   const statusText = useTextCycle(statusTexts);
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
   
   return (
     <header className="hidden md:flex items-center justify-between p-4 fixed top-0 left-0 right-0 z-50 bg-background/50 backdrop-blur-md">
@@ -45,9 +56,17 @@ export function Header() {
           </NavLink>
         ))}
       </nav>
-       <div className="font-mono text-xs text-primary uppercase flex items-center">
-         {statusText}
-         <span className="w-2 h-2 bg-primary inline-block ml-2 animate-blink"></span>
+       <div className="flex items-center gap-6">
+        <div className="font-mono text-xs text-primary uppercase flex items-center">
+          {statusText}
+          <span className="w-2 h-2 bg-primary inline-block ml-2 animate-blink"></span>
+        </div>
+        {!loading && user && (
+          <Button variant="destructive" size="sm" onClick={handleLogout}>
+            <LogOut className="size-4 mr-2" />
+            End Session
+          </Button>
+        )}
        </div>
     </header>
   );

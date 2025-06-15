@@ -86,6 +86,8 @@ const Ritual = () => {
     setTimeLeft(0);
   }
 
+  const handleCancelSelection = () => setPageState('idle');
+
   const unlockedAchievements = achievements.filter(Boolean).length;
 
   return (
@@ -124,7 +126,7 @@ const Ritual = () => {
         )}
         {pageState === 'selecting' && (
             <motion.div variants={itemVariants} className="w-full">
-                <RitualSelection onStart={handleStartRitual} />
+                <RitualSelection onStart={handleStartRitual} onCancel={handleCancelSelection} />
             </motion.div>
         )}
         {pageState === 'running' && (
