@@ -40,7 +40,7 @@ const Presence = () => {
         .select('*, challenges(*)')
         .eq('user_id', user.id)
         .not('status', 'eq', 'rejected')
-        .order('created_at', { ascending: false });
+        .order('updated_at', { ascending: false });
 
       if (error) {
         toast.error("Could not fetch presence data. The fabric of reality is thin here.");
