@@ -104,6 +104,8 @@ export type Database = {
           challenge_id: string
           completed_at: string | null
           id: string
+          is_daily: boolean
+          mission_date: string | null
           started_at: string | null
           status: string
           updated_at: string
@@ -113,6 +115,8 @@ export type Database = {
           challenge_id: string
           completed_at?: string | null
           id?: string
+          is_daily?: boolean
+          mission_date?: string | null
           started_at?: string | null
           status?: string
           updated_at?: string
@@ -122,6 +126,8 @@ export type Database = {
           challenge_id?: string
           completed_at?: string | null
           id?: string
+          is_daily?: boolean
+          mission_date?: string | null
           started_at?: string | null
           status?: string
           updated_at?: string
