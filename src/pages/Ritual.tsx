@@ -3,10 +3,9 @@ import { motion } from "framer-motion";
 import { TerminalCard } from "@/components/ui/TerminalCard";
 import { Button } from "@/components/ui/button";
 import { RitualCircle } from "@/components/home/RitualCircle";
-import { Sparkles, Wind, Activity, Check, Play } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { Check, Play, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RitualSelection } from "@/components/ritual/RitualSelection";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -25,29 +24,19 @@ const itemVariants = {
 
 const MotionCard = motion(TerminalCard);
 
-const movements = [
-    { icon: Sparkles, text: "Grounding Posture" },
-    { icon: Wind, text: "Breath Synchronization" },
-    { icon: Activity, text: "Spinal Waves" },
-]
-
-const achievements = [true, true, true, false, false, false, false, false, false];
+const achievements = [true, true, false];
 
 const Ritual = () => {
-  const [duration, setDuration] = useState(12 * 60);
-  const [timeLeft, setTimeLeft] = useState(duration);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [inputMinutes, setInputMinutes] = useState(12);
-  const [inputSeconds, setInputSeconds] = useState(0);
+  const [pageState, setPageState] = useState<'idle' | 'loading' | 'selecting' | 'running' | 'completed'>('idle');
+  const [duration, setDuration] = useState(0); // in seconds
+  const [timeLeft, setTimeLeft] = useState(0); // in seconds
+  const [selectedRitual, setSelectedRitual] = useState("");
 
   useEffect(() => {
-    if (!isTimerRunning) return;
+    if (pageState !== 'running') return;
 
     if (timeLeft <= 0) {
-      setIsTimerRunning(false);
-      setIsCompleted(true);
+      setPageState('completed');
       return;
     }
 
@@ -56,44 +45,37 @@ const Ritual = () => {
     }, 1000);
 
     return () => clearInterval(timerId);
-  }, [isTimerRunning, timeLeft]);
+  }, [pageState, timeLeft]);
+
+  useEffect(() => {
+    if (pageState === 'loading') {
+        const timer = setTimeout(() => setPageState('selecting'), 2000);
+        return () => clearTimeout(timer);
+    }
+  }, [pageState]);
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
   };
-
-  const handleStart = () => {
-    const newDuration = inputMinutes * 60 + inputSeconds;
-    if (newDuration === 0) return;
+  
+  const handleStartRitual = (ritual: string, durationInMinutes: number) => {
+    const newDuration = durationInMinutes * 60;
+    setSelectedRitual(ritual);
     setDuration(newDuration);
     setTimeLeft(newDuration);
-    setIsTimerRunning(true);
-    setIsCompleted(false);
-    setIsDialogOpen(false);
+    setPageState('running');
   };
-  
-  const handleMinuteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      let value = parseInt(e.target.value, 10) || 0;
-      value = Math.max(0, Math.min(59, value));
-      setInputMinutes(value);
-  }
-  const handleSecondChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      let value = parseInt(e.target.value, 10) || 0;
-      value = Math.max(0, Math.min(59, value));
-      setInputSeconds(value);
-  }
 
   const handleReset = () => {
-    setIsCompleted(false);
-    setInputMinutes(12);
-    setInputSeconds(0);
-    const defaultDuration = 12 * 60;
-    setDuration(defaultDuration);
-    setTimeLeft(defaultDuration);
-    setIsDialogOpen(true);
+    setPageState('idle');
+    setSelectedRitual("");
+    setDuration(0);
+    setTimeLeft(0);
   }
+
+  const unlockedAchievements = achievements.filter(Boolean).length;
 
   return (
     <motion.div
@@ -106,77 +88,69 @@ const Ritual = () => {
         Ritual Movements
       </motion.h1>
       
-      <motion.div 
-        variants={itemVariants}
-        animate={{
-          filter: isTimerRunning ? 'drop-shadow(0 0 0.5rem hsl(var(--primary) / 0.5)) sepia(1) saturate(4) hue-rotate(320deg)' : 'none',
-          scale: isTimerRunning ? [1, 1.01, 1] : 1,
-        }}
-        transition={{
-          scale: isTimerRunning ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" } : { duration: 0.5 },
-          filter: { duration: 1 }
-        }}
-      >
-        <RitualCircle />
-      </motion.div>
-
-      <motion.p variants={itemVariants} className="text-muted-foreground mt-2 text-sm uppercase tracking-widest">
-        "Movement is prayer the body remembers"
-      </motion.p>
-      
-      <motion.div variants={itemVariants} className="mt-6">
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button
-                  variant={isCompleted ? "default" : "outline"}
-                  onClick={isCompleted ? handleReset : undefined}
-                  className={cn(
-                      "border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase font-bold tracking-wider px-8 py-3 w-72 transition-all h-auto",
-                      isTimerRunning && "opacity-50 cursor-not-allowed",
-                      isCompleted && "bg-green-500 border-green-500 hover:bg-green-600 text-white animate-pulse"
-                  )}
-                  disabled={isTimerRunning}
-              >
-                {isCompleted ? "Success :) Start New?" : isTimerRunning ? <span className="text-lg font-mono">{formatTime(timeLeft)}</span> : <><Play className="w-4 h-4 mr-2" />Begin Daily Sequence</>}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-xs">
-              <DialogHeader>
-                <DialogTitle className="text-center">Set Sequence Duration</DialogTitle>
-              </DialogHeader>
-              <div className="flex items-center justify-center gap-2 py-4">
-                <div>
-                  <Input type="number" value={String(inputMinutes).padStart(2,'0')} onChange={handleMinuteChange} className="w-24 text-center text-5xl h-24 font-mono bg-transparent border-0 shadow-none focus-visible:ring-0 p-0" />
-                  <p className="text-xs text-center text-muted-foreground uppercase tracking-widest">Minutes</p>
+      <div className="min-h-[350px] flex flex-col justify-center items-center my-8">
+        {pageState === 'idle' && (
+            <motion.div variants={itemVariants} className="w-full flex flex-col items-center">
+                <RitualCircle />
+                <p className="text-muted-foreground mt-2 text-sm uppercase tracking-widest">
+                    "Movement is prayer the body remembers"
+                </p>
+                <div className="mt-6">
+                    <Button
+                        onClick={() => setPageState('loading')}
+                        className="border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase font-bold tracking-wider px-8 py-3 w-72 transition-all h-auto"
+                    >
+                        <Play className="w-4 h-4 mr-2" />Begin Daily Sequence
+                    </Button>
                 </div>
-                <span className="text-5xl font-mono text-muted-foreground pb-6">:</span>
-                <div>
-                  <Input type="number" value={String(inputSeconds).padStart(2,'0')} onChange={handleSecondChange} className="w-24 text-center text-5xl h-24 font-mono bg-transparent border-0 shadow-none focus-visible:ring-0 p-0" />
-                  <p className="text-xs text-center text-muted-foreground uppercase tracking-widest">Seconds</p>
+            </motion.div>
+        )}
+        {pageState === 'loading' && (
+            <motion.div variants={itemVariants} className="flex flex-col items-center justify-center">
+                <Loader2 className="w-16 h-16 text-primary animate-spin" />
+                <p className="mt-4 text-muted-foreground uppercase tracking-widest">Preparing ritual...</p>
+            </motion.div>
+        )}
+        {pageState === 'selecting' && (
+            <motion.div variants={itemVariants} className="w-full">
+                <RitualSelection onStart={handleStartRitual} />
+            </motion.div>
+        )}
+        {(pageState === 'running' || pageState === 'completed') && (
+            <motion.div variants={itemVariants} className="w-full flex flex-col items-center">
+                 <motion.div
+                    animate={{
+                        filter: pageState === 'running' ? 'drop-shadow(0 0 0.75rem hsl(var(--primary) / 0.6)) sepia(1) saturate(4) hue-rotate(320deg)' : 'none',
+                        scale: pageState === 'running' ? [1, 1.01, 1] : 1,
+                    }}
+                    transition={{
+                        scale: pageState === 'running' ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" } : { duration: 0.5 },
+                        filter: { duration: 1.5, ease: "easeInOut", repeat: Infinity, repeatType: "mirror" }
+                    }}
+                >
+                    <RitualCircle />
+                </motion.div>
+                 <p className="text-muted-foreground mt-2 text-sm uppercase tracking-widest">
+                    {pageState === 'running' ? `"${selectedRitual}"` : "Ritual Complete"}
+                </p>
+                <div className="mt-6">
+                    <Button
+                        variant={pageState === 'completed' ? "default" : "outline"}
+                        onClick={pageState === 'completed' ? handleReset : undefined}
+                        className={cn(
+                            "border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase font-bold tracking-wider px-8 py-3 w-72 transition-all h-auto",
+                            pageState === 'running' && "opacity-50 cursor-not-allowed",
+                            pageState === 'completed' && "bg-green-500 border-green-500 hover:bg-green-600 text-white animate-pulse"
+                        )}
+                        disabled={pageState === 'running'}
+                    >
+                        {pageState === 'completed' ? "Success :) Start New?" : <span className="text-lg font-mono">{formatTime(timeLeft)}</span>}
+                    </Button>
                 </div>
-              </div>
-              <DialogFooter>
-                <Button onClick={handleStart} className="w-full">
-                  <Play className="w-4 h-4 mr-2"/>
-                  Start Ritual
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-      </motion.div>
+            </motion.div>
+        )}
+      </div>
 
-      <motion.div 
-        variants={containerVariants}
-        className="grid grid-cols-3 gap-4 mt-8 max-w-2xl mx-auto"
-      >
-        {movements.map((move, i) => (
-            <MotionCard key={i} variants={itemVariants} className="flex flex-col items-center justify-center p-4 aspect-square">
-                <move.icon className="w-8 h-8 text-primary" />
-                <span className="text-xs uppercase text-center mt-3 tracking-wider">{move.text}</span>
-            </MotionCard>
-        ))}
-      </motion.div>
-      
       <MotionCard variants={itemVariants} className="max-w-2xl mx-auto mt-8 text-left p-4">
         <h3 className="font-bold uppercase tracking-widest text-muted-foreground mb-4 text-sm">Progress</h3>
         <div className="flex justify-between items-center font-mono">
@@ -194,7 +168,7 @@ const Ritual = () => {
       <MotionCard variants={itemVariants} className="max-w-2xl mx-auto mt-8 text-left p-4">
          <div className="flex justify-between items-center mb-4">
            <h3 className="font-bold uppercase tracking-widest text-muted-foreground text-sm">Achievements</h3>
-           <p className="font-mono text-sm text-primary">3/9 UNLOCKED</p>
+           <p className="font-mono text-sm text-primary">{unlockedAchievements}/{achievements.length} UNLOCKED</p>
          </div>
         <div className="grid grid-cols-3 gap-4">
           {achievements.map((unlocked, i) => (
