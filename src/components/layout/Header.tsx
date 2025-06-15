@@ -1,3 +1,4 @@
+
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useTextCycle } from "@/hooks/useTextCycle";
@@ -5,7 +6,7 @@ import { useTextCycle } from "@/hooks/useTextCycle";
 const navItems = [
   { to: "/", label: "Home" },
   { to: "/meditation", label: "Meditation" },
-  { to: "/challenge", label: "Challenge" },
+  { to: "/presence", label: "Presence" },
   { to: "/ritual", label: "Ritual" },
   { to: "/journal", label: "Journal" },
   { to: "/matrix", label: "Matrix" },
