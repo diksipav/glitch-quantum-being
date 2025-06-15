@@ -41,13 +41,18 @@ const CosmicTutor = () => {
         body: { messages: [...messages, userMessage] },
       });
 
-      if (error) throw new Error(error.message);
+      if (error) {
+        throw error; // Throw the whole error object to be caught below
+      }
       
       const assistantMessage: Message = { role: 'assistant', content: data.reply };
       setMessages((prev) => [...prev, assistantMessage]);
 
     } catch (error: any) {
-      toast.error(`Error from the cosmos: ${error.message}`);
+      // The supabase-js client wraps Edge Function errors.
+      // The original error message from the function is often in `error.context`.
+      const detailedMessage = error.context?.error || error.message;
+      toast.error(`Error from the cosmos: ${detailedMessage}`);
       setMessages(prev => prev.slice(0, -1)); // Remove user message if API call fails
     } finally {
       setIsLoading(false);
