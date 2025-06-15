@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { TerminalCard } from "@/components/ui/TerminalCard";
@@ -35,7 +36,11 @@ const itemVariants = {
 
 const MotionCard = motion(TerminalCard);
 
-const achievements = [true, true, false];
+const achievementsData = [
+  { text: "Connecting with yourself and with your breath", unlocked: true, loading: false },
+  { text: "Connecting with your feet", unlocked: true, loading: false },
+  { text: "Loading achievement", unlocked: false, loading: true },
+];
 
 const Ritual = () => {
   const [pageState, setPageState] = useState<'idle' | 'loading' | 'selecting' | 'running' | 'completed'>('idle');
@@ -71,8 +76,8 @@ const Ritual = () => {
     return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
   };
   
-  const handleStartRitual = (ritual: string, durationInMinutes: number) => {
-    const newDuration = durationInMinutes * 60;
+  const handleStartRitual = (ritual: string, durationInSeconds: number) => {
+    const newDuration = durationInSeconds;
     setSelectedRitual(ritual);
     setDuration(newDuration);
     setTimeLeft(newDuration);
@@ -88,7 +93,7 @@ const Ritual = () => {
 
   const handleCancelSelection = () => setPageState('idle');
 
-  const unlockedAchievements = achievements.filter(Boolean).length;
+  const unlockedAchievements = achievementsData.filter(a => a.unlocked).length;
 
   return (
     <motion.div
@@ -220,12 +225,16 @@ const Ritual = () => {
       <MotionCard variants={itemVariants} className="max-w-2xl mx-auto mt-8 text-left p-4">
          <div className="flex justify-between items-center mb-4">
            <h3 className="font-bold uppercase tracking-widest text-muted-foreground text-sm">Achievements</h3>
-           <p className="font-mono text-sm text-primary">{unlockedAchievements}/{achievements.length} UNLOCKED</p>
+           <p className="font-mono text-sm text-primary">{unlockedAchievements}/{achievementsData.length} UNLOCKED</p>
          </div>
-        <div className="grid grid-cols-3 gap-4">
-          {achievements.map((unlocked, i) => (
-              <div key={i} className={`aspect-square border-2 flex items-center justify-center ${unlocked ? 'border-primary bg-primary/10' : 'border-border'}`}>
-                  {unlocked && <Check className="w-8 h-8 text-primary" />}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {achievementsData.map((achievement, i) => (
+              <div key={i} className={cn('aspect-square border-2 flex flex-col items-center justify-center p-4 text-center rounded-md', achievement.unlocked ? 'border-primary bg-primary/10' : 'border-border')}>
+                  {achievement.unlocked && <Check className="w-8 h-8 text-primary mb-2" />}
+                  {achievement.loading && <Loader2 className="w-8 h-8 text-primary/50 mb-2 animate-spin" />}
+                  <p className={cn("text-xs uppercase tracking-wider", achievement.unlocked ? 'text-primary' : 'text-muted-foreground', achievement.loading && 'animate-blink')}>
+                    {achievement.text}
+                  </p>
               </div>
           ))}
         </div>
