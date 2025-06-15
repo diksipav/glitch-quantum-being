@@ -34,9 +34,8 @@ export function BottomNav() {
                   <span
                     className={cn(
                       "text-[11px] font-mono uppercase transition-all",
-                      isActive && "glitch"
+                      isActive && "drop-shadow-[0_0_4px_hsl(var(--primary))]"
                     )}
-                    data-text={isActive ? item.label : ""}
                   >
                     {item.label}
                   </span>

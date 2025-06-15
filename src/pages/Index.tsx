@@ -8,6 +8,7 @@ import { useState } from "react";
 import { Loader2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/use-auth";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -30,6 +31,7 @@ export default function Index() {
   const { dailyRitualCompleted, dailyRitualTotal, energyLevel } = useAppStore();
   const [onboardingStatus, setOnboardingStatus] = useState<"idle" | "processing" | "synchronizing" | "complete" | "optimized">("idle");
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
 
   const handleOnboarding = () => {
     if (onboardingStatus !== 'idle') return;
@@ -95,7 +97,9 @@ export default function Index() {
       animate="visible"
       variants={containerVariants}
     >
-      <RitualCircle />
+      <div className="-mt-12 md:-mt-8">
+        <RitualCircle />
+      </div>
       
       <motion.h1 className="font-display text-2xl uppercase tracking-widest" variants={itemVariants}>
         Welcome, Traveler
@@ -124,11 +128,19 @@ export default function Index() {
       >
         <MotionCard variants={itemVariants} className="text-left p-4">
           <h3 className="font-bold uppercase tracking-wider text-muted-foreground text-xs">Daily Ritual</h3>
-          <p className="text-lg font-bold mt-1 text-foreground">Completed: <span className="text-primary">{dailyRitualCompleted}/{dailyRitualTotal}</span></p>
+          {authLoading ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : user ? (
+            <p className="text-lg font-bold mt-1 text-foreground">Completed: <span className="text-primary">{dailyRitualCompleted}/{dailyRitualTotal}</span></p>
+          ) : (
+            <p className="text-sm font-bold mt-2 text-destructive uppercase animate-pulse">Error: Auth Required</p>
+          )}
         </MotionCard>
         <MotionCard variants={itemVariants} className="text-left p-4">
           <h3 className="font-bold uppercase tracking-wider text-muted-foreground text-xs">Energy Level</h3>
-          <p className="text-lg font-bold mt-1 text-primary">{energyLevel}%</p>
+          {authLoading ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : user ? (
+            <p className="text-lg font-bold mt-1 text-primary">{energyLevel}%</p>
+          ) : (
+            <p className="text-sm font-bold mt-2 text-destructive uppercase animate-pulse">Error: Auth Required</p>
+          )}
         </MotionCard>
       </motion.div>
 

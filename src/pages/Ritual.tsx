@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { TerminalCard } from "@/components/ui/TerminalCard";
@@ -110,7 +109,7 @@ const Ritual = () => {
                 <div className="mt-6">
                     <Button
                         onClick={() => setPageState('loading')}
-                        className="border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase font-bold tracking-wider px-8 py-3 w-72 transition-all h-auto"
+                        className="border-primary text-white hover:bg-primary hover:text-primary-foreground uppercase font-bold tracking-wider px-8 py-3 w-72 transition-all h-auto animate-blink"
                     >
                         <Play className="w-4 h-4 mr-2" />Begin Daily Sequence
                     </Button>

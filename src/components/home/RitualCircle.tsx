@@ -1,37 +1,35 @@
 
 import { motion } from "framer-motion";
 
-export function RitualCircle() {
-  const dots = [
-    { top: "20%", left: "50%" },
-    { top: "35%", left: "25%" },
-    { top: "65%", left: "80%" },
-    { top: "80%", left: "40%" },
-    { top: "50%", left: "50%" },
-  ];
+const planets = [
+  { radius: 45, size: 6, duration: 18 },
+  { radius: 70, size: 8, duration: 30 },
+  { radius: 95, size: 6, duration: 45 },
+];
 
+export function RitualCircle() {
   return (
-    <div className="relative w-48 h-48 md:w-56 md:h-56 mx-auto my-4">
-      <div className="absolute inset-0 border-2 border-dashed border-primary rounded-full animate-rotate"></div>
-      {dots.map((dot, i) => (
+    <div className="relative w-48 h-48 md:w-56 md:h-56 mx-auto my-4 flex items-center justify-center">
+      <motion.div
+        className="absolute w-full h-full border-2 border-dashed border-primary rounded-full"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
+      />
+      <div className="absolute w-4 h-4 bg-primary rounded-full shadow-[0_0_15px_hsl(var(--primary))]"></div>
+      
+      {planets.map((planet, i) => (
         <motion.div
           key={i}
-          className="absolute w-3 h-3 bg-primary rounded-full"
-          initial={{ top: dot.top, left: dot.left }}
-          animate={{
-            x: [0, Math.random() * 10 - 5, 0],
-            y: [0, Math.random() * 10 - 5, 0],
-          }}
-          transition={{
-            duration: Math.random() * 3 + 2,
-            repeat: Infinity,
-            repeatType: "mirror",
-            ease: "easeInOut",
-          }}
-          style={{
-            transform: "translate(-50%, -50%)"
-          }}
-        ></motion.div>
+          className="absolute"
+          style={{ width: 2 * planet.radius, height: 2 * planet.radius }}
+          animate={{ rotate: 360 }}
+          transition={{ duration: planet.duration, repeat: Infinity, ease: 'linear' }}
+        >
+          <div 
+            className="absolute top-1/2 bg-primary rounded-full"
+            style={{ width: planet.size, height: planet.size, left: 0, transform: 'translate(-50%, -50%)' }}
+          />
+        </motion.div>
       ))}
     </div>
   );
