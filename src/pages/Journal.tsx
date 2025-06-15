@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { TerminalCard } from "@/components/ui/TerminalCard";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronDown, Eye, Loader2, Send } from "lucide-react";
+import { ChevronDown, Eye, Loader2, Send, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,17 @@ import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { Tables } from "@/integrations/supabase/types";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { cn } from "@/lib/utils";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -51,6 +62,7 @@ const Journal = () => {
   const [prompt] = useState(
     "Describe your current mental state as if it were a landscape on an alien planet."
   );
+  const [entryToDelete, setEntryToDelete] = useState<Tables<"journal_entries"> | null>(null);
 
   const {
     data: entries,
@@ -79,6 +91,23 @@ const Journal = () => {
     onError: (error) => {
       toast.error(`Failed to save entry: ${error.message}`);
     },
+  });
+
+  const { mutate: deleteEntry, isPending: isDeleting } = useMutation({
+    mutationFn: async (entryId: string) => {
+      if (!user) throw new Error("You must be logged in.");
+      const { error } = await supabase.from('journal_entries').delete().eq('id', entryId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Journal entry vaporized into cosmic dust.");
+      queryClient.invalidateQueries({ queryKey: ["journalEntries", user?.id] });
+      setEntryToDelete(null);
+    },
+    onError: (error: any) => {
+      toast.error(`Error: ${error.message}`);
+      setEntryToDelete(null);
+    }
   });
 
   const handleSave = () => {
@@ -182,19 +211,24 @@ const Journal = () => {
           {!isLoadingEntries && entries && entries.length > 0 &&
             entries.map((entry: Tables<"journal_entries">) => (
               <MotionCard key={entry.id} variants={itemVariants} className="mb-4 p-4">
-                <div className="flex justify-between items-start">
-                  <div>
+                <div className="flex justify-between items-start gap-2">
+                  <div className="flex-grow">
                     <div className="text-xs text-muted-foreground uppercase">
                       {format(new Date(entry.created_at), "MMM dd, yyyy - HH:mm")}
                     </div>
                     {entry.prompt && <p className="mt-2 text-primary/80 text-sm italic">"{entry.prompt}"</p>}
-                    <p className="mt-2 text-foreground/90 text-sm whitespace-pre-wrap">
+                    <p className={cn("mt-2 text-foreground/90 text-sm whitespace-pre-wrap transition-all", { "text-destructive line-through": entryToDelete?.id === entry.id })}>
                       {entry.content.length > 100 ? `${entry.content.substring(0, 100)}...` : entry.content}
                     </p>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" asChild>
-                    <Link to="/journal-history"><Eye className="h-4 w-4" /></Link>
-                  </Button>
+                  <div className="flex items-center flex-shrink-0">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                      <Link to="/journal-history"><Eye className="h-4 w-4" /></Link>
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/80 hover:text-destructive" onClick={() => setEntryToDelete(entry)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </MotionCard>
             ))}
@@ -205,6 +239,27 @@ const Journal = () => {
             )}
         </motion.div>
       )}
+      <AlertDialog open={!!entryToDelete} onOpenChange={(isOpen) => !isOpen && setEntryToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this memory?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This entry will be permanently erased from the cosmic record. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => entryToDelete && deleteEntry(entryToDelete.id)}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 };
