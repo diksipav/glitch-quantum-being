@@ -25,9 +25,9 @@ const rituals = [
 ];
 
 const timeOptions = [
-    { label: "00:13", value: 13 },
-    { label: "00:33", value: 33 },
-    { label: "01:03", value: 63 },
+    { label: "13 MIN", value: 13 * 60 },
+    { label: "33 MIN", value: 33 * 60 },
+    { label: "63 MIN", value: 63 * 60 },
 ];
 
 interface RitualSelectionProps {
@@ -88,7 +88,7 @@ export const RitualSelection = ({ onStart, onCancel }: RitualSelectionProps) => 
             </TerminalCard>
 
             <TerminalCard className="p-4 text-left">
-                <h3 className="font-bold uppercase tracking-widest text-muted-foreground mb-4 text-sm">Set Duration (mm:ss)</h3>
+                <h3 className="font-bold uppercase tracking-widest text-muted-foreground mb-4 text-sm">Set Duration</h3>
                  <RadioGroup value={selectedTimeOption?.toString() || ""} onValueChange={(val) => setSelectedTimeOption(val === 'custom' ? 'custom' : Number(val))} className="flex justify-center flex-wrap gap-4">
                     {timeOptions.map((option) => (
                          <Label key={option.value} htmlFor={option.label} className={cn("flex items-center border-2 rounded-md p-3 cursor-pointer", selectedTimeOption === option.value ? 'border-primary bg-primary/10' : 'border-border')}>

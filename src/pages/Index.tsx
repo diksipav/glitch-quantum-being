@@ -2,13 +2,15 @@
 import { Button } from "@/components/ui/button";
 import { TerminalCard } from "@/components/ui/TerminalCard";
 import { RitualCircle } from "@/components/home/RitualCircle";
-import { useAppStore } from "@/lib/store";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Loader2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAppStore } from "@/lib/store";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -28,10 +30,38 @@ const itemVariants = {
 const MotionCard = motion(TerminalCard);
 
 export default function Index() {
-  const { dailyRitualCompleted, dailyRitualTotal, energyLevel } = useAppStore();
+  const { energyLevel } = useAppStore();
   const [onboardingStatus, setOnboardingStatus] = useState<"idle" | "processing" | "synchronizing" | "complete" | "optimized">("idle");
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+
+  const { data: todaysRituals, isLoading: isLoadingRituals } = useQuery({
+    queryKey: ['ritualLogsToday', user?.id],
+    queryFn: async () => {
+        if (!user) return [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        const { data, error } = await supabase
+            .from('ritual_logs')
+            .select('id', { count: 'exact' })
+            .eq('user_id', user.id)
+            .gte('completed_at', today.toISOString())
+            .lt('completed_at', tomorrow.toISOString());
+
+        if (error) {
+            console.error('Error fetching today\'s rituals:', error);
+            return [];
+        }
+        return data;
+    },
+    enabled: !!user,
+  });
+
+  const dailyRitualCompleted = todaysRituals?.length || 0;
+  const dailyRitualTotal = 3;
 
   const handleOnboarding = () => {
     if (onboardingStatus !== 'idle') return;
@@ -128,8 +158,17 @@ export default function Index() {
       >
         <MotionCard variants={itemVariants} className="text-left p-4">
           <h3 className="font-bold uppercase tracking-wider text-muted-foreground text-xs">Daily Ritual</h3>
-          {authLoading ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : user ? (
-            <p className="text-lg font-bold mt-1 text-foreground">Completed: <span className="text-primary">{dailyRitualCompleted}/{dailyRitualTotal}</span></p>
+          {authLoading || isLoadingRituals ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : user ? (
+            dailyRitualCompleted === 0 ? (
+              <p className="text-sm font-bold mt-2 text-destructive uppercase animate-pulse">Error: waiting ritual</p>
+            ) : (
+              <p className={cn(
+                  "text-lg font-bold mt-1",
+                  dailyRitualCompleted >= dailyRitualTotal ? "text-green-500" : "text-foreground"
+              )}>
+                Completed: <span className={cn(dailyRitualCompleted >= dailyRitualTotal ? "text-green-500" : "text-primary")}>{dailyRitualCompleted}/{dailyRitualTotal}</span>
+              </p>
+            )
           ) : (
             <p className="text-sm font-bold mt-2 text-destructive uppercase animate-pulse">Error: Auth Required</p>
           )}

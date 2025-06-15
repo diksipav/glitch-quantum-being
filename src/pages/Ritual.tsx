@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { TerminalCard } from "@/components/ui/TerminalCard";
@@ -18,6 +17,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -47,12 +50,55 @@ const Ritual = () => {
   const [duration, setDuration] = useState(0); // in seconds
   const [timeLeft, setTimeLeft] = useState(0); // in seconds
   const [selectedRitual, setSelectedRitual] = useState("");
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  const { data: profile, isLoading: isLoadingProfile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('current_streak, longest_streak')
+        .eq('id', user.id)
+        .single();
+      if (error) {
+        console.error("Error fetching profile:", error);
+        return null;
+      };
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const updateRitualLogMutation = useMutation({
+    mutationFn: async ({ ritual, durationInSeconds }: { ritual: string; durationInSeconds: number }) => {
+        if (!user) throw new Error("User not found");
+        const { error, data } = await supabase.rpc('update_streak_and_log_ritual', {
+            p_user_id: user.id,
+            p_ritual_name: ritual,
+            p_duration_seconds: durationInSeconds
+        });
+        if (error) throw error;
+        return data;
+    },
+    onSuccess: () => {
+        toast.success("Ritual logged. Streak updated!");
+        queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+        queryClient.invalidateQueries({ queryKey: ['ritualLogs', user?.id] });
+        queryClient.invalidateQueries({ queryKey: ['ritualLogsToday', user?.id] });
+    },
+    onError: (error: Error) => {
+        toast.error(`Failed to log ritual: ${error.message}`);
+    }
+  });
 
   useEffect(() => {
-    if (pageState !== 'running') return;
+    if (pageState !== 'running' || !selectedRitual || duration <= 0) return;
 
     if (timeLeft <= 0) {
       setPageState('completed');
+      updateRitualLogMutation.mutate({ ritual: selectedRitual, durationInSeconds: duration });
       return;
     }
 
@@ -61,7 +107,7 @@ const Ritual = () => {
     }, 1000);
 
     return () => clearInterval(timerId);
-  }, [pageState, timeLeft]);
+  }, [pageState, timeLeft, duration, selectedRitual, updateRitualLogMutation]);
 
   useEffect(() => {
     if (pageState === 'loading') {
@@ -196,12 +242,15 @@ const Ritual = () => {
                 <div className="mt-6">
                     <Button
                         onClick={handleReset}
+                        disabled={updateRitualLogMutation.isPending}
                         className={cn(
                             "uppercase font-bold tracking-wider px-8 py-3 w-72 transition-all h-auto",
-                            "bg-green-500 border-green-500 hover:bg-green-600 text-white animate-pulse"
+                            "bg-green-500 border-green-500 hover:bg-green-600 text-white",
+                            !updateRitualLogMutation.isPending && "animate-pulse"
                         )}
                     >
-                        Success :) Start New?
+                      {updateRitualLogMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {updateRitualLogMutation.isPending ? 'Logging...' : 'Success :) Start New?'}
                     </Button>
                 </div>
             </motion.div>
@@ -213,11 +262,11 @@ const Ritual = () => {
         <div className="flex justify-between items-center font-mono">
           <div>
               <p className="text-xs text-muted-foreground">CURRENT STREAK</p>
-              <p className="text-primary text-xl font-bold">7 DAYS</p>
+              {isLoadingProfile ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : <p className="text-primary text-xl font-bold">{profile?.current_streak ?? 0} DAYS</p>}
           </div>
           <div className="text-right">
               <p className="text-xs text-muted-foreground">LONGEST STREAK</p>
-              <p className="text-primary text-xl font-bold">21 DAYS</p>
+              {isLoadingProfile ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : <p className="text-primary text-xl font-bold">{profile?.longest_streak ?? 0} DAYS</p>}
           </div>
         </div>
       </MotionCard>

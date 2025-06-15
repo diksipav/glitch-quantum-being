@@ -60,17 +60,23 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          current_streak: number
           id: string
+          longest_streak: number
           username: string | null
         }
         Insert: {
           created_at?: string
+          current_streak?: number
           id: string
+          longest_streak?: number
           username?: string | null
         }
         Update: {
           created_at?: string
+          current_streak?: number
           id?: string
+          longest_streak?: number
           username?: string | null
         }
         Relationships: []
@@ -148,7 +154,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_streak_and_log_ritual: {
+        Args: {
+          p_user_id: string
+          p_ritual_name: string
+          p_duration_seconds: number
+        }
+        Returns: {
+          new_current_streak: number
+          new_longest_streak: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
