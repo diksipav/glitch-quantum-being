@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { Loader2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 
 const containerVariants = {
@@ -143,6 +143,17 @@ export default function Index() {
           )}
         </MotionCard>
       </motion.div>
+
+      {!authLoading && user && (
+        <motion.div variants={itemVariants} className="mt-8 max-w-2xl mx-auto flex justify-center gap-8">
+            <Link to="/ritual-logs" className="font-mono text-xs uppercase text-primary hover:underline">
+              Past Rituals Logs
+            </Link>
+            <Link to="/journal-history" className="font-mono text-xs uppercase text-primary hover:underline">
+              Journal History
+            </Link>
+        </motion.div>
+      )}
 
       {!authLoading && user && (
         <motion.div className="mt-10 max-w-2xl mx-auto text-left" variants={containerVariants}>

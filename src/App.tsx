@@ -14,6 +14,8 @@ import Journal from "./pages/Journal";
 import Matrix from "./pages/Matrix";
 import Auth from "./pages/Auth";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import RitualLogs from "./pages/RitualLogs";
+import JournalHistory from "./pages/JournalHistory";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +36,8 @@ const App = () => (
               <Route path="/challenge" element={<Challenge />} />
               <Route path="/ritual" element={<Ritual />} />
               <Route path="/matrix" element={<Matrix />} />
+              <Route path="/ritual-logs" element={<RitualLogs />} />
+              <Route path="/journal-history" element={<JournalHistory />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
