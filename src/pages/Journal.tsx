@@ -4,6 +4,7 @@ import { TerminalCard } from "@/components/ui/TerminalCard";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, Eye } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -33,7 +34,9 @@ const pastEntries = [
     }
 ];
 
-const Journal = () => (
+const Journal = () => {
+  const { user } = useAuth();
+  return (
   <motion.div
     className="max-w-2xl mx-auto"
     initial="hidden"
@@ -50,12 +53,18 @@ const Journal = () => (
         <Button variant="ghost" size="sm" className="text-xs h-7">CHANGE <ChevronDown className="w-4 h-4 ml-1"/></Button>
       </div>
       <p className="mt-2 text-foreground/90">"Describe your current mental state as if it were a landscape on an alien planet."</p>
-      <Textarea placeholder="BEGIN TRANSMISSION..." className="bg-terminal border-primary/20 focus-visible:ring-primary h-32 mt-4"/>
-      <div className="flex justify-center mt-4">
-        <Button variant="ghost" className="uppercase text-primary tracking-widest">
-          Save Entry
-        </Button>
-      </div>
+      <Textarea 
+        placeholder={user ? "BEGIN TRANSMISSION..." : "Log in to save your entry."} 
+        className="bg-terminal border-primary/20 focus-visible:ring-primary h-32 mt-4"
+        disabled={!user}
+      />
+      {user && (
+        <div className="flex justify-center mt-4">
+          <Button variant="ghost" className="uppercase text-primary tracking-widest">
+            Save Entry
+          </Button>
+        </div>
+      )}
     </MotionCard>
 
     <MotionCard variants={itemVariants} className="mt-8 p-4 text-left">
@@ -72,22 +81,25 @@ const Journal = () => (
       </Button>
     </MotionCard>
 
-    <motion.div className="mt-8 text-left" variants={containerVariants}>
-      <h2 className="font-display text-xl uppercase tracking-widest mb-4">Past Entries</h2>
-      {pastEntries.map((entry, index) => (
-          <MotionCard key={index} variants={itemVariants} className="mb-4 p-4">
-            <div className="flex justify-between items-start">
-                <div>
-                    <div className="text-xs text-muted-foreground uppercase">{entry.date}</div>
-                    <p className="mt-2 text-foreground/90 text-sm">"{entry.text}"</p>
-                </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
-                    <Eye className="h-4 w-4" />
-                </Button>
-            </div>
-          </MotionCard>
-      ))}
-    </motion.div>
+    {user && (
+      <motion.div className="mt-8 text-left" variants={containerVariants}>
+        <h2 className="font-display text-xl uppercase tracking-widest mb-4">Past Entries</h2>
+        {pastEntries.map((entry, index) => (
+            <MotionCard key={index} variants={itemVariants} className="mb-4 p-4">
+              <div className="flex justify-between items-start">
+                  <div>
+                      <div className="text-xs text-muted-foreground uppercase">{entry.date}</div>
+                      <p className="mt-2 text-foreground/90 text-sm">"{entry.text}"</p>
+                  </div>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                      <Eye className="h-4 w-4" />
+                  </Button>
+              </div>
+            </MotionCard>
+        ))}
+      </motion.div>
+    )}
   </motion.div>
-);
+  )
+};
 export default Journal;

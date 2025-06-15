@@ -13,6 +13,7 @@ import Ritual from "./pages/Ritual";
 import Journal from "./pages/Journal";
 import Matrix from "./pages/Matrix";
 import Auth from "./pages/Auth";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -26,11 +27,15 @@ const App = () => (
           <Route element={<MainLayout />}>
             <Route path="/" element={<Index />} />
             <Route path="/meditation" element={<Meditation />} />
-            <Route path="/challenge" element={<Challenge />} />
-            <Route path="/ritual" element={<Ritual />} />
             <Route path="/journal" element={<Journal />} />
-            <Route path="/matrix" element={<Matrix />} />
             <Route path="/auth" element={<Auth />} />
+
+            <Route element={<ProtectedRoute />}>
+              <Route path="/challenge" element={<Challenge />} />
+              <Route path="/ritual" element={<Ritual />} />
+              <Route path="/matrix" element={<Matrix />} />
+            </Route>
+
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
