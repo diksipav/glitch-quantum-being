@@ -28,7 +28,7 @@ serve(async (req) => {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-3-haiku-20240307",
+        model: "claude-3-5-haiku-20241022",
         max_tokens: 1024,
         system: "You are Cosmic Tutor, a wise, slightly mysterious AI guide for creative exploration and self-discovery. Your tone is cosmic, metaphorical, and inspiring. Keep your answers concise and poetic.",
         messages: messages,
