@@ -16,6 +16,7 @@ import Auth from "./pages/Auth";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import RitualLogs from "./pages/RitualLogs";
 import JournalHistory from "./pages/JournalHistory";
+import CosmicTutor from "./pages/CosmicTutor";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
               <Route path="/matrix" element={<Matrix />} />
               <Route path="/ritual-logs" element={<RitualLogs />} />
               <Route path="/journal-history" element={<JournalHistory />} />
+              <Route path="/cosmic-tutor" element={<CosmicTutor />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
