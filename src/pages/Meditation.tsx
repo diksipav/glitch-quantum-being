@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { TerminalCard } from "@/components/ui/TerminalCard";
 import { Button } from "@/components/ui/button";
@@ -48,12 +47,66 @@ const pastSessions = [
   }
 ];
 
-const chartData = [
+const chartBaseData = [
   { value: 10 }, { value: 8 }, { value: 12 }, { value: 9 }, { value: 11 }, { value: 13 }, { value: 10 }, { value: 12 },
 ];
 
 const Meditation = () => {
-  const [duration, setDuration] = useState(20);
+  const [duration, setDuration] = useState(13);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(duration * 60);
+  const [animatedChartData, setAnimatedChartData] = useState(chartBaseData);
+
+  useEffect(() => {
+    if (!isTimerRunning) return;
+
+    if (timeLeft <= 0) {
+      setIsTimerRunning(false);
+      setIsCompleted(true);
+      return;
+    }
+
+    const timerId = setInterval(() => {
+      setTimeLeft((prevTime) => (prevTime > 0 ? prevTime - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(timerId);
+  }, [isTimerRunning, timeLeft]);
+
+  useEffect(() => {
+    let frameId;
+    const animate = (time) => {
+      const newChartData = chartBaseData.map((d, i) => ({
+        ...d,
+        value: d.value + 2 * Math.sin(time / 500 + i / 2),
+      }));
+      setAnimatedChartData(newChartData);
+      frameId = requestAnimationFrame(animate);
+    };
+    frameId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frameId);
+  }, []);
+
+  const handleDurationChange = (d: number) => {
+    setDuration(d);
+    setIsTimerRunning(false);
+    setIsCompleted(false);
+    setTimeLeft(d * 60);
+  };
+
+  const handleBeginClick = () => {
+    if (isTimerRunning) return;
+    setIsCompleted(false);
+    setTimeLeft(duration * 60);
+    setIsTimerRunning(true);
+  };
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+  };
 
   return (
     <motion.div
@@ -70,8 +123,8 @@ const Meditation = () => {
         <div className="flex justify-between items-center">
           <h3 className="font-bold uppercase tracking-widest text-muted-foreground text-sm">Today's Focus</h3>
           <div className="flex items-center space-x-1">
-            {[5, 10, 20].map(d => (
-              <Button key={d} onClick={() => setDuration(d)} variant={duration === d ? 'secondary' : 'ghost'} size="sm" className="text-xs h-7 px-2">
+            {[6, 13, 33].map(d => (
+              <Button key={d} onClick={() => handleDurationChange(d)} variant={duration === d ? 'secondary' : 'ghost'} size="sm" className="text-xs h-7 px-2">
                 {d}:00
               </Button>
             ))}
@@ -79,14 +132,23 @@ const Meditation = () => {
         </div>
         <p className="mt-4 text-foreground/90">"Visualize your thoughts as confused tourists in a city where all street signs are written in an alien language. Watch them wander."</p>
         <div className="mt-4 flex justify-between items-center">
-          <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase font-bold tracking-wider">
-            Begin ({duration} min)
+          <Button
+            onClick={handleBeginClick}
+            variant={isCompleted ? 'default' : 'outline'}
+            disabled={isTimerRunning}
+            className={cn(
+              "w-36 border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase font-bold tracking-wider transition-all",
+              isTimerRunning && "opacity-50 cursor-not-allowed",
+              isCompleted && "bg-green-500 border-green-500 hover:bg-green-600 text-white animate-pulse"
+            )}
+          >
+            {isCompleted ? "Success :)" : isTimerRunning ? formatTime(timeLeft) : `Begin (${duration} min)`}
           </Button>
           <div className="text-right">
             <h4 className="text-xs uppercase text-muted-foreground">Ambient Frequency</h4>
             <div className="w-32 h-8 mt-1">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
+                <BarChart data={animatedChartData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
                   <Bar dataKey="value" fill="hsl(var(--primary))" radius={[2, 2, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
