@@ -54,10 +54,23 @@ const CosmicTutor = () => {
       setMessages((prev) => [...prev, assistantMessage]);
 
     } catch (error: any) {
-      // The supabase-js client wraps Edge Function errors.
-      // The original error message from the function is often in `error.context`.
-      const detailedMessage = error.context?.error || error.message;
-      toast.error(`Error from the cosmos: ${detailedMessage}`);
+      console.error("Cosmic Tutor Error Object:", JSON.stringify(error, null, 2));
+
+      let detailedMessage = "An unknown error occurred.";
+      if (typeof error.context?.error === 'string') {
+        detailedMessage = error.context.error;
+      } else if (typeof error.message === 'string') {
+        detailedMessage = error.message;
+      }
+
+      if (detailedMessage.includes("401") || detailedMessage.includes("authentication_error")) {
+         toast.error("Invalid Anthropic API Key", {
+           description: "The API key for Anthropic seems to be invalid. Please update it.",
+         });
+      } else {
+        toast.error(`Error from the cosmos: ${detailedMessage}`);
+      }
+      
       setMessages(prev => prev.slice(0, -1)); // Remove user message if API call fails
     } finally {
       setIsLoading(false);

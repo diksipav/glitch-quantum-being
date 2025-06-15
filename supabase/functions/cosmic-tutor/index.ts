@@ -28,7 +28,7 @@ serve(async (req) => {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-3-5-haiku-20241022",
+        model: "claude-3-opus-20240229",
         max_tokens: 1024,
         system: "You are Cosmic Tutor, a wise, slightly mysterious AI guide for creative exploration and self-discovery. Your tone is cosmic, metaphorical, and inspiring. Keep your answers concise and poetic.",
         messages: messages,
@@ -38,6 +38,16 @@ serve(async (req) => {
     if (!response.ok) {
         const errorBody = await response.text();
         console.error("Anthropic API error:", errorBody);
+        // Try to parse the error body as JSON to get more details
+        try {
+          const parsedError = JSON.parse(errorBody);
+          if (parsedError.error && parsedError.error.message) {
+            throw new Error(`Anthropic API Error: ${parsedError.error.message}`);
+          }
+        } catch (e) {
+          // Fallback if parsing fails
+          throw new Error(`Anthropic API request failed with status ${response.status}: ${errorBody}`);
+        }
         throw new Error(`Anthropic API request failed with status ${response.status}`);
     }
 
