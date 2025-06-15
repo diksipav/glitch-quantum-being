@@ -97,7 +97,7 @@ export default function Index() {
       animate="visible"
       variants={containerVariants}
     >
-      <div className="-mt-12 md:-mt-8 pt-0.5">
+      <div className="-mt-10 md:-mt-6 pt-0.5">
         <RitualCircle />
       </div>
       
