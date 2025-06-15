@@ -1,11 +1,23 @@
+
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { TerminalCard } from "@/components/ui/TerminalCard";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { RitualCircle } from "@/components/home/RitualCircle";
 import { Check, Play, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RitualSelection } from "@/components/ritual/RitualSelection";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -116,35 +128,74 @@ const Ritual = () => {
                 <RitualSelection onStart={handleStartRitual} />
             </motion.div>
         )}
-        {(pageState === 'running' || pageState === 'completed') && (
+        {pageState === 'running' && (
             <motion.div variants={itemVariants} className="w-full flex flex-col items-center">
                  <motion.div
                     animate={{
-                        filter: pageState === 'running' ? 'drop-shadow(0 0 0.75rem hsl(var(--primary) / 0.6)) sepia(1) saturate(4) hue-rotate(320deg)' : 'none',
-                        scale: pageState === 'running' ? [1, 1.01, 1] : 1,
+                        filter: 'drop-shadow(0 0 0.75rem hsl(var(--primary) / 0.6)) sepia(1) saturate(4) hue-rotate(320deg)',
+                        scale: [1, 1.01, 1],
                     }}
                     transition={{
-                        scale: pageState === 'running' ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" } : { duration: 0.5 },
+                        scale: { duration: 1.5, repeat: Infinity, ease: "easeInOut" },
                         filter: { duration: 1.5, ease: "easeInOut", repeat: Infinity, repeatType: "mirror" }
                     }}
                 >
                     <RitualCircle />
                 </motion.div>
                  <p className="text-muted-foreground mt-2 text-sm uppercase tracking-widest">
-                    {pageState === 'running' ? `"${selectedRitual}"` : "Ritual Complete"}
+                    {`"${selectedRitual}"`}
+                </p>
+                <div className="mt-6 flex flex-col items-center gap-2">
+                    <Button
+                        variant="outline"
+                        className="border-primary text-primary uppercase font-bold tracking-wider px-8 py-3 w-72 transition-all h-auto opacity-50 cursor-not-allowed"
+                        disabled
+                    >
+                        <span className="text-lg font-mono">{formatTime(timeLeft)}</span>
+                    </Button>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="ghost" className="text-muted-foreground uppercase text-xs tracking-wider hover:text-destructive hover:bg-transparent">Cancel Ritual</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure you want to cancel?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This will end your current ritual session. Your progress for this session will not be saved.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Continue Ritual</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleReset} className={buttonVariants({ variant: "destructive" })}>Cancel Ritual</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </div>
+            </motion.div>
+        )}
+        {pageState === 'completed' && (
+            <motion.div variants={itemVariants} className="w-full flex flex-col items-center">
+                 <motion.div
+                    animate={{
+                        filter: 'none',
+                        scale: 1,
+                    }}
+                    transition={{ duration: 0.5 }}
+                >
+                    <RitualCircle />
+                </motion.div>
+                 <p className="text-muted-foreground mt-2 text-sm uppercase tracking-widest">
+                    Ritual Complete
                 </p>
                 <div className="mt-6">
                     <Button
-                        variant={pageState === 'completed' ? "default" : "outline"}
-                        onClick={pageState === 'completed' ? handleReset : undefined}
+                        onClick={handleReset}
                         className={cn(
-                            "border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase font-bold tracking-wider px-8 py-3 w-72 transition-all h-auto",
-                            pageState === 'running' && "opacity-50 cursor-not-allowed",
-                            pageState === 'completed' && "bg-green-500 border-green-500 hover:bg-green-600 text-white animate-pulse"
+                            "uppercase font-bold tracking-wider px-8 py-3 w-72 transition-all h-auto",
+                            "bg-green-500 border-green-500 hover:bg-green-600 text-white animate-pulse"
                         )}
-                        disabled={pageState === 'running'}
                     >
-                        {pageState === 'completed' ? "Success :) Start New?" : <span className="text-lg font-mono">{formatTime(timeLeft)}</span>}
+                        Success :) Start New?
                     </Button>
                 </div>
             </motion.div>
