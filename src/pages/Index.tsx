@@ -30,8 +30,9 @@ const itemVariants = {
 const MotionCard = motion(TerminalCard);
 
 export default function Index() {
-  const { energyLevel } = useAppStore();
+  const { getAverageEnergyLevel } = useAppStore();
   const [onboardingStatus, setOnboardingStatus] = useState<"idle" | "processing" | "synchronizing" | "complete" | "optimized">("idle");
+  const [showParticles, setShowParticles] = useState(false);
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
@@ -62,6 +63,17 @@ export default function Index() {
 
   const dailyRitualCompleted = todaysRituals?.length || 0;
   const dailyRitualTotal = 3;
+  const energyLevel = getAverageEnergyLevel();
+
+  const handleEnergyClick = () => {
+    setShowParticles(true);
+    setTimeout(() => {
+      navigate('/energy-level');
+    }, 800);
+    setTimeout(() => {
+      setShowParticles(false);
+    }, 1000);
+  };
 
   const handleOnboarding = () => {
     if (onboardingStatus !== 'idle') return;
@@ -127,6 +139,35 @@ export default function Index() {
       animate="visible"
       variants={containerVariants}
     >
+      {/* Particle animation overlay */}
+      {showParticles && (
+        <div className="fixed inset-0 z-50 pointer-events-none">
+          {Array.from({ length: 50 }).map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-primary rounded-full"
+              initial={{
+                x: window.innerWidth * 0.7,
+                y: window.innerHeight * 0.4,
+                scale: 0,
+                opacity: 1,
+              }}
+              animate={{
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                scale: [0, 1, 0],
+                opacity: [1, 0.8, 0],
+              }}
+              transition={{
+                duration: 0.8,
+                delay: i * 0.02,
+                ease: "easeOut",
+              }}
+            />
+          ))}
+        </div>
+      )}
+
       <div className="-mt-10 md:-mt-6 pt-0.5">
         <RitualCircle />
       </div>
@@ -173,7 +214,11 @@ export default function Index() {
             <p className="text-sm font-bold mt-2 text-destructive uppercase animate-pulse">Error: Auth Required</p>
           )}
         </MotionCard>
-        <MotionCard variants={itemVariants} className="text-left p-4">
+        <MotionCard 
+          variants={itemVariants} 
+          className="text-left p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+          onClick={handleEnergyClick}
+        >
           <h3 className="font-bold uppercase tracking-wider text-muted-foreground text-xs">Energy Level</h3>
           {authLoading ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : user ? (
             <p className="text-lg font-bold mt-1 text-primary">{energyLevel}%</p>

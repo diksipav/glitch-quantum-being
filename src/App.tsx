@@ -13,6 +13,7 @@ import Ritual from "./pages/Ritual";
 import Journal from "./pages/Journal";
 import Matrix from "./pages/Matrix";
 import Auth from "./pages/Auth";
+import EnergyLevel from "./pages/EnergyLevel";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import RitualLogs from "./pages/RitualLogs";
 import JournalHistory from "./pages/JournalHistory";
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/meditation" element={<Meditation />} />
             <Route path="/journal" element={<Journal />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/energy-level" element={<EnergyLevel />} />
 
             <Route element={<ProtectedRoute />}>
               <Route path="/presence" element={<Presence />} />

@@ -56,6 +56,15 @@ const Presence = () => {
     mutationFn: async () => {
       if (!user) throw new Error("User not authenticated.");
 
+      // Check if daily mission already exists for today
+      const today = new Date().toISOString().slice(0, 10);
+      const existingDaily = userChallenges?.find(uc => uc.is_daily && uc.mission_date === today);
+      
+      if (existingDaily) {
+        console.log("Daily mission already exists for today");
+        return null;
+      }
+
       const { data: allChallenges, error: challengesError } = await supabase.from('challenges').select('id');
       if (challengesError) throw challengesError;
 
@@ -71,7 +80,6 @@ const Presence = () => {
       }
       const randomChallenge = availableForDaily[Math.floor(Math.random() * availableForDaily.length)];
       
-      const today = new Date().toISOString().slice(0, 10);
       const { error: insertError } = await supabase.from('user_challenges').insert({
           user_id: user.id,
           challenge_id: randomChallenge.id,
@@ -79,25 +87,38 @@ const Presence = () => {
           is_daily: true,
           mission_date: today,
       });
-      if (insertError) throw insertError;
+      if (insertError) {
+        // If it's a duplicate error, just ignore it
+        if (insertError.code === '23505') {
+          console.log("Daily mission already exists (duplicate key)");
+          return null;
+        }
+        throw insertError;
+      }
+      return randomChallenge;
     },
-    onSuccess: () => {
-      toast.success("New daily presence mission acquired.");
-      queryClient.invalidateQueries({ queryKey: ['user_challenges', user?.id] });
+    onSuccess: (data) => {
+      if (data) {
+        toast.success("New daily presence mission acquired.");
+        queryClient.invalidateQueries({ queryKey: ['user_challenges', user?.id] });
+      }
     },
-    onError: (error: Error) => toast.error(`Failed to get daily mission: ${error.message}`),
+    onError: (error: Error) => {
+      if (!error.message.includes('duplicate')) {
+        toast.error(`Failed to get daily mission: ${error.message}`);
+      }
+    },
   });
 
   useEffect(() => {
-    if (user && !isLoadingChallenges && userChallenges) {
+    if (user && !isLoadingChallenges && userChallenges && !createDailyMissionMutation.isPending) {
       const today = new Date().toISOString().slice(0, 10);
       const hasDailyForToday = userChallenges.some(uc => uc.is_daily && uc.mission_date === today);
-      if (!hasDailyForToday && !createDailyMissionMutation.isPending) {
+      if (!hasDailyForToday) {
         createDailyMissionMutation.mutate();
       }
     }
-  }, [user, isLoadingChallenges, userChallenges, createDailyMissionMutation]);
-
+  }, [user, isLoadingChallenges, userChallenges]);
 
   const updateUserChallengeMutation = useMutation({
     mutationFn: async ({ id, status, started_at }: { id: string; status: string; started_at?: string | null }) => {
@@ -175,7 +196,6 @@ const Presence = () => {
     },
     onError: (error: Error) => toast.error(error.message),
   });
-
 
   const renderChallengeCard = (challenge: UserChallengeWithChallenge) => {
     if (!challenge.challenges) return null;
