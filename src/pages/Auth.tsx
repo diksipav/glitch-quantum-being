@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,7 +17,7 @@ import {
 } from "@/components/ui/form";
 import { TerminalCard } from "@/components/ui/TerminalCard";
 import { toast } from "sonner";
-import { Chrome, Loader2 } from "lucide-react";
+import { Chrome, Loader2, Apple } from "lucide-react";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -170,7 +169,7 @@ export default function Auth() {
                 <Chrome className="mr-2 h-4 w-4" /> Google
             </Button>
             <Button variant="outline" onClick={() => handleOAuthLogin('apple')} disabled={loading}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="mr-2" viewBox="0 0 16 16"><path d="M8.082 1.326a4.545 4.545 0 0 0-3.32.964A4.526 4.526 0 0 0 3.33 4.25c0 1.25.59 2.372 1.596 3.064a3.63 3.63 0 0 1-1.464 2.892.51.51 0 0 0-.158.558c.07.19.232.308.438.308.05 0 .1-.008.15-.024a3.812 3.812 0 0 0 1.248-.523c.532.42.99.73 1.596.73.614 0 1.082-.31 1.612-.73a3.79 3.79 0 0 0 1.24.523c.05.016.1.024.15.024.206 0 .368-.118.438-.308a.51.51 0 0 0-.158-.558 3.63 3.63 0 0 1-1.464-2.892C11.08 6.622 11.67 5.5 11.67 4.25a4.526 4.526 0 0 0-1.432-1.96 4.545 4.545 0 0 0-2.156-.964z"/><path d="M6.289 10.165a2.76 2.76 0 0 0 1.045 2.146 2.58 2.58 0 0 0 1.48.59c.008 0 .016 0 .023-.002.533-.024.965-.246 1.437-.62a.522.522 0 0 0 .19-.434.51.51 0 0 0-.54-.42c-.18.04-.37.06-.57.06-.48 0-.89-.213-1.28-.56a2.44 2.44 0 0 1-.95-1.55.51.51 0 0 0-.51-.41H6.7a.51.51 0 0 0-.41.51zM4.62 1.488a3.54 3.54 0 0 1 2.33-1.223 3.528 3.528 0 0 1 2.11.002c.11.023.19.12.19.232a.21.21 0 0 1-.22.21c-.8.016-1.52.28-2.07.67a3.528 3.528 0 0 0-1.92 1.524.21.21 0 0 1-.38-.115.21.21 0 0 1 .01-.102z"/></svg> Apple
+                <Apple className="mr-2 h-4 w-4" /> Apple
             </Button>
         </div>
 

@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { TerminalCard } from "@/components/ui/TerminalCard";
 import { RitualCircle } from "@/components/home/RitualCircle";
@@ -11,6 +10,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/lib/store";
+import { toast } from "sonner";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -66,6 +66,10 @@ export default function Index() {
   const energyLevel = getAverageEnergyLevel();
 
   const handleEnergyClick = () => {
+    if (!user) {
+      toast.error("Please log in to access energy calibration");
+      return;
+    }
     setShowParticles(true);
     setTimeout(() => {
       navigate('/energy-level');
@@ -76,22 +80,33 @@ export default function Index() {
   };
 
   const handleOnboarding = () => {
-    if (onboardingStatus !== 'idle') return;
-
-    setOnboardingStatus("processing");
-    setTimeout(() => {
-      setOnboardingStatus("synchronizing");
+    if (!user) {
+      if (onboardingStatus !== 'idle') return;
+      setOnboardingStatus("processing");
       setTimeout(() => {
-        setOnboardingStatus("complete");
-        // After showing completion, redirect to the auth page
+        setOnboardingStatus("synchronizing");
         setTimeout(() => {
-          navigate('/auth');
-        }, 1000);
-      }, 2000);
-    }, 1000);
+          setOnboardingStatus("complete");
+          setTimeout(() => {
+            navigate('/auth');
+          }, 1000);
+        }, 2000);
+      }, 1000);
+    } else {
+      toast.success("Welcome Program");
+    }
   };
 
   const getButtonContent = () => {
+    if (user) {
+      return (
+        <>
+          <Check className="text-green-500" />
+          <span className="text-green-500">Boarding Complete :)</span>
+        </>
+      );
+    }
+    
     switch (onboardingStatus) {
       case "processing":
         return "PROCESSING...";
@@ -118,18 +133,22 @@ export default function Index() {
   };
   
   const getButtonClass = () => {
-     switch (onboardingStatus) {
-       case 'idle':
-         return "border-primary text-primary hover:bg-primary hover:text-primary-foreground";
-       case 'processing':
-       case 'synchronizing':
-       case 'complete':
-         return "bg-accent text-accent-foreground cursor-not-allowed";
-       case 'optimized':
-         return "bg-green-500 hover:bg-green-400 text-primary-foreground cursor-not-allowed";
-       default:
-         return "";
-     }
+    if (user) {
+      return "bg-green-500/10 border-green-500 text-green-500 hover:bg-green-500/20";
+    }
+    
+    switch (onboardingStatus) {
+      case 'idle':
+        return "border-primary text-primary hover:bg-primary hover:text-primary-foreground";
+      case 'processing':
+      case 'synchronizing':
+      case 'complete':
+        return "bg-accent text-accent-foreground cursor-not-allowed";
+      case 'optimized':
+        return "bg-green-500 hover:bg-green-400 text-primary-foreground cursor-not-allowed";
+      default:
+        return "";
+    }
   }
 
   return (
@@ -187,7 +206,7 @@ export default function Index() {
           variant="outline" 
           className={cn("uppercase font-bold tracking-wider px-8 py-6", getButtonClass())}
           onClick={handleOnboarding}
-          disabled={onboardingStatus !== 'idle'}
+          disabled={!user && onboardingStatus !== 'idle'}
         >
           {getButtonContent()}
         </Button>
@@ -216,7 +235,10 @@ export default function Index() {
         </MotionCard>
         <MotionCard 
           variants={itemVariants} 
-          className="text-left p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+          className={cn(
+            "text-left p-4 transition-colors",
+            user ? "cursor-pointer hover:bg-accent/50" : "cursor-not-allowed opacity-60"
+          )}
           onClick={handleEnergyClick}
         >
           <h3 className="font-bold uppercase tracking-wider text-muted-foreground text-xs">Energy Level</h3>

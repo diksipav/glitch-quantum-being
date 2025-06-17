@@ -30,7 +30,7 @@ export const InteractiveEnergyCircles = ({ energyLevels, onEnergyChange }: Inter
   const centerY = 200;
 
   const getPointOnCircle = (radius: number, percentage: number) => {
-    const angle = (percentage / 100) * 2 * Math.PI - Math.PI / 2; // Start from top
+    const angle = (percentage / 100) * 2 * Math.PI - Math.PI / 2;
     return {
       x: centerX + radius * Math.cos(angle),
       y: centerY + radius * Math.sin(angle),
@@ -44,10 +44,12 @@ export const InteractiveEnergyCircles = ({ energyLevels, onEnergyChange }: Inter
     return Math.round(percentage);
   };
 
-  const handleMouseDown = (circleName: string) => {
+  const handleStart = (circleName: string, event: any) => {
+    event.preventDefault();
     setIsDragging(circleName);
+    
     // Create particle effect
-    const newParticles = Array.from({ length: 10 }, (_, i) => ({
+    const newParticles = Array.from({ length: 8 }, (_, i) => ({
       id: `${circleName}-${Date.now()}-${i}`,
       x: centerX + (Math.random() - 0.5) * 100,
       y: centerY + (Math.random() - 0.5) * 100,
@@ -55,18 +57,20 @@ export const InteractiveEnergyCircles = ({ energyLevels, onEnergyChange }: Inter
     }));
     setParticles(prev => [...prev, ...newParticles]);
     
-    // Remove particles after animation
     setTimeout(() => {
       setParticles(prev => prev.filter(p => !p.id.startsWith(`${circleName}-${Date.now()}`)));
     }, 1000);
   };
 
-  const handleMouseMove = (event: MouseEvent) => {
+  const handleMove = (event: MouseEvent | TouchEvent) => {
     if (!isDragging || !svgRef.current) return;
 
     const rect = svgRef.current.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
+    const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
+    
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
 
     const circle = circles.find(c => c.name === isDragging);
     if (!circle) return;
@@ -79,17 +83,46 @@ export const InteractiveEnergyCircles = ({ energyLevels, onEnergyChange }: Inter
     });
   };
 
-  const handleMouseUp = () => {
+  const handleEnd = () => {
     setIsDragging(null);
+  };
+
+  const handleCircleClick = (circleName: string, event: React.MouseEvent) => {
+    if (!svgRef.current) return;
+
+    const rect = svgRef.current.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    const circle = circles.find(c => c.name === circleName);
+    if (!circle) return;
+
+    const percentage = getPercentageFromPoint(x, y, circle.radius);
+    
+    onEnergyChange({
+      ...energyLevels,
+      [circleName]: percentage,
+    });
   };
 
   useEffect(() => {
     if (isDragging) {
+      const handleMouseMove = (e: MouseEvent) => handleMove(e);
+      const handleTouchMove = (e: TouchEvent) => {
+        e.preventDefault();
+        handleMove(e);
+      };
+
       document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('mouseup', handleEnd);
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+      document.addEventListener('touchend', handleEnd);
+      
       return () => {
         document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('mouseup', handleEnd);
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('touchend', handleEnd);
       };
     }
   }, [isDragging, energyLevels]);
@@ -106,7 +139,8 @@ export const InteractiveEnergyCircles = ({ energyLevels, onEnergyChange }: Inter
         width="400"
         height="400"
         viewBox="0 0 400 400"
-        className="select-none"
+        className="select-none max-w-full h-auto"
+        style={{ touchAction: 'none' }}
       >
         {/* Background circles */}
         {circles.map((circle) => (
@@ -119,6 +153,8 @@ export const InteractiveEnergyCircles = ({ energyLevels, onEnergyChange }: Inter
             stroke={circle.color}
             strokeWidth={1}
             opacity={0.3}
+            className="cursor-pointer"
+            onClick={(e) => handleCircleClick(circle.name, e)}
           />
         ))}
 
@@ -157,12 +193,14 @@ export const InteractiveEnergyCircles = ({ energyLevels, onEnergyChange }: Inter
               key={`dot-${circle.name}`}
               cx={point.x}
               cy={point.y}
-              r={8}
+              r={12}
               fill={circle.color}
               stroke="#000"
               strokeWidth={2}
               className="cursor-pointer hover:scale-110 transition-transform"
-              onMouseDown={() => handleMouseDown(circle.name)}
+              onMouseDown={(e) => handleStart(circle.name, e)}
+              onTouchStart={(e) => handleStart(circle.name, e)}
+              style={{ touchAction: 'none' }}
             />
           );
         })}
@@ -190,14 +228,6 @@ export const InteractiveEnergyCircles = ({ energyLevels, onEnergyChange }: Inter
           opacity={0.8}
         />
       </svg>
-
-      {/* Energy type descriptions */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-xs space-y-1 text-center">
-        <div className="text-blue-400">Mental: Cognitive clarity and focus</div>
-        <div className="text-green-400">Physical: Body vitality and strength</div>
-        <div className="text-purple-400">Emotional: Feeling balance and stability</div>
-        <div className="text-yellow-400">Intentional: Purpose and direction</div>
-      </div>
     </motion.div>
   );
 };

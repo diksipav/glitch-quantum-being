@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
 import { useMemo, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
+import { ChallengeInfoTooltip } from "@/components/presence/ChallengeInfoTooltip";
 
 type Challenge = Database['public']['Tables']['challenges']['Row'];
 type UserChallenge = Database['public']['Tables']['user_challenges']['Row'];
@@ -56,7 +57,6 @@ const Presence = () => {
     mutationFn: async () => {
       if (!user) throw new Error("User not authenticated.");
 
-      // Check if daily mission already exists for today
       const today = new Date().toISOString().slice(0, 10);
       const existingDaily = userChallenges?.find(uc => uc.is_daily && uc.mission_date === today);
       
@@ -76,7 +76,7 @@ const Presence = () => {
       const userChallengeIds = userChallenges?.map(uc => uc.challenge_id) || [];
       let availableForDaily = allChallenges.filter(c => !userChallengeIds.includes(c.id));
       if (availableForDaily.length === 0) {
-        availableForDaily = allChallenges; // Reuse if all are done
+        availableForDaily = allChallenges;
       }
       const randomChallenge = availableForDaily[Math.floor(Math.random() * availableForDaily.length)];
       
@@ -88,7 +88,6 @@ const Presence = () => {
           mission_date: today,
       });
       if (insertError) {
-        // If it's a duplicate error, just ignore it
         if (insertError.code === '23505') {
           console.log("Daily mission already exists (duplicate key)");
           return null;
@@ -176,9 +175,9 @@ const Presence = () => {
 
         const { data: insertedChallenge, error: insertChallengeError } = await supabase.from('challenges').insert(newChallengeJSON).select().single();
         if (insertChallengeError) {
-          if (insertChallengeError.code === '23505') { // unique_violation
+          if (insertChallengeError.code === '23505') {
             toast.warning("Generated a duplicate challenge. Retrying...");
-            exploreMutation.mutate(); // Retry
+            exploreMutation.mutate();
             return null;
           }
           throw new Error(`Could not save new challenge: ${insertChallengeError.message}`);
@@ -204,7 +203,7 @@ const Presence = () => {
     return (
       <MotionCard key={challenge.id} variants={itemVariants} className="p-4">
         <div className="flex justify-between items-start">
-          <div>
+          <div className="flex-1">
             <h3 className="font-bold uppercase tracking-widest text-primary">{title}</h3>
             <p className="mt-2 text-foreground/90 text-sm">{description}</p>
           </div>
@@ -216,9 +215,10 @@ const Presence = () => {
           </div>
         </div>
         <div className="mt-4 flex justify-between items-end text-xs font-mono uppercase">
-           <div>
+          <div className="flex items-center gap-2">
             {challenge.status === 'active' && <div className="text-green-400 animate-pulse">STATUS: ACTIVE</div>}
-           </div>
+            <ChallengeInfoTooltip title={title} description={description} />
+          </div>
           <div className="flex gap-4">
             {challenge.status === 'not_started' && (
               <>

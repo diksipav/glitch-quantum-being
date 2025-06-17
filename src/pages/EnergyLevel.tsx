@@ -4,9 +4,12 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { InteractiveEnergyCircles } from "@/components/energy/InteractiveEnergyCircles";
+import { useAppStore } from "@/lib/store";
+import { toast } from "sonner";
 
 const EnergyLevel = () => {
   const navigate = useNavigate();
+  const { updateEnergyLevels } = useAppStore();
   const [energyLevels, setEnergyLevels] = useState({
     mental: 0,
     physical: 0,
@@ -15,20 +18,21 @@ const EnergyLevel = () => {
   });
 
   const handleSave = () => {
-    // Here you would save the energy levels to your store or database
-    console.log("Energy levels:", energyLevels);
+    const average = Math.round((energyLevels.mental + energyLevels.physical + energyLevels.emotional + energyLevels.intentional) / 4);
+    updateEnergyLevels(energyLevels);
+    toast.success(`Energy levels saved! Average: ${average}%`);
     navigate('/');
   };
 
   return (
     <motion.div 
-      className="text-center min-h-screen flex flex-col justify-center items-center"
+      className="text-center min-h-screen flex flex-col justify-center items-center px-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
       <motion.h1 
-        className="font-display text-2xl md:text-4xl uppercase tracking-widest mb-8"
+        className="font-display text-2xl md:text-4xl uppercase tracking-widest mb-4"
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
@@ -37,13 +41,33 @@ const EnergyLevel = () => {
       </motion.h1>
       
       <motion.p 
-        className="text-muted-foreground mb-12 max-w-md"
+        className="text-muted-foreground mb-8 max-w-md text-sm md:text-base"
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3 }}
       >
-        Adjust your energy levels by dragging the dots around each circle. Move clockwise to increase energy.
+        Set your energy levels by moving the sliders around each circle. Drag the dots or tap to adjust your energy in each dimension.
       </motion.p>
+
+      <motion.div 
+        className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-2 text-xs max-w-2xl mx-auto"
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.4 }}
+      >
+        <div className="text-center md:text-left">
+          <span className="text-blue-400">●</span> <strong>Mental:</strong> Cognitive clarity, focus, and mental sharpness
+        </div>
+        <div className="text-center md:text-left">
+          <span className="text-green-400">●</span> <strong>Physical:</strong> Body vitality, strength, and physical wellness
+        </div>
+        <div className="text-center md:text-left">
+          <span className="text-purple-400">●</span> <strong>Emotional:</strong> Feeling balance, emotional stability, and mood
+        </div>
+        <div className="text-center md:text-left">
+          <span className="text-yellow-400">●</span> <strong>Intentional:</strong> Sense of purpose, direction, and motivation
+        </div>
+      </motion.div>
 
       <InteractiveEnergyCircles 
         energyLevels={energyLevels}
@@ -51,7 +75,7 @@ const EnergyLevel = () => {
       />
 
       <motion.div 
-        className="mt-12 space-y-4"
+        className="mt-8 space-y-4"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.8 }}
