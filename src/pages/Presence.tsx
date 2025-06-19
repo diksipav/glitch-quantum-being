@@ -1,7 +1,8 @@
+
 import { motion } from "framer-motion";
 import { TerminalCard } from "@/components/ui/TerminalCard";
 import { Button } from "@/components/ui/button";
-import { Check, Search, Loader2 } from "lucide-react";
+import { Check, Search, Loader2, History } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,6 +11,7 @@ import { Database } from "@/integrations/supabase/types";
 import { useMemo, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import { ChallengeInfoTooltip } from "@/components/presence/ChallengeInfoTooltip";
+import { useNavigate } from "react-router-dom";
 
 type Challenge = Database['public']['Tables']['challenges']['Row'];
 type UserChallenge = Database['public']['Tables']['user_challenges']['Row'];
@@ -29,6 +31,7 @@ const MotionCard = motion(TerminalCard);
 
 const Presence = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { addFocusPoints } = useAppStore();
 
@@ -127,14 +130,24 @@ const Presence = () => {
       const { error } = await supabase.from('user_challenges').update(updateObject).eq('id', id);
       if (error) throw error;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: async (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['user_challenges', user?.id] });
       if (variables.status === 'active') toast.success("New presence challenge initiated. Observe.");
       if (variables.status === 'rejected') toast.warning("Presence challenge rejected. It fades from your reality.");
       if (variables.status === 'not_started') toast.info("Presence challenge aborted.");
       if (variables.status === 'completed') {
-        toast.success("Presence challenge complete. Data integrated.");
         const completedChallenge = userChallenges?.find(c => c.id === variables.id);
+        if (completedChallenge?.challenges && user) {
+          // Log the completed challenge
+          await supabase.from('presence_logs').insert({
+            user_id: user.id,
+            challenge_id: completedChallenge.challenge_id,
+            title: completedChallenge.challenges.title,
+            description: completedChallenge.challenges.description
+          });
+        }
+        
+        toast.success("Presence challenge complete. Data integrated.");
         if (completedChallenge?.is_daily) {
           addFocusPoints(10);
           toast.success("+10 FOCUS points acquired!", { description: "Your consciousness expands." });
@@ -233,8 +246,8 @@ const Presence = () => {
     );
   };
   
-  const availableChallenges = otherChallenges.filter(c => c.status === 'not_started');
-  const completedChallenges = otherChallenges.filter(c => c.status === 'completed');
+  const availableChallenges = otherChallenges.filter(c => c.status === 'not_started').slice(0, 1); // Only show 1
+  const completedChallenges = otherChallenges.filter(c => c.status === 'completed').slice(0, 2); // Only show 2
   
   return (
     <motion.div className="text-center" initial="hidden" animate="visible" variants={containerVariants}>
@@ -282,7 +295,18 @@ const Presence = () => {
 
         {completedChallenges.length > 0 && (
             <>
-                <h2 className="font-mono text-muted-foreground text-sm uppercase mt-8 border-t border-primary/20 pt-4">Integration Log / Completed</h2>
+                <div className="flex justify-between items-center mt-8 border-t border-primary/20 pt-4">
+                  <h2 className="font-mono text-muted-foreground text-sm uppercase">Integration Log / Completed</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/presence-logs')}
+                    className="text-primary hover:text-primary/80"
+                  >
+                    <History className="w-4 h-4 mr-1" />
+                    Past Logs
+                  </Button>
+                </div>
                 {completedChallenges.map(renderChallengeCard)}
             </>
         )}

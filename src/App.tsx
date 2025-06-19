@@ -8,7 +8,10 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { MainLayout } from "./components/layout/MainLayout";
 import Meditation from "./pages/Meditation";
+import MeditationSession from "./pages/MeditationSession";
+import MeditationLogs from "./pages/MeditationLogs";
 import Presence from "./pages/Presence";
+import PresenceLogs from "./pages/PresenceLogs";
 import Ritual from "./pages/Ritual";
 import Journal from "./pages/Journal";
 import Matrix from "./pages/Matrix";
@@ -31,12 +34,15 @@ const App = () => (
           <Route element={<MainLayout />}>
             <Route path="/" element={<Index />} />
             <Route path="/meditation" element={<Meditation />} />
+            <Route path="/meditation-session" element={<MeditationSession />} />
+            <Route path="/meditation-logs" element={<MeditationLogs />} />
             <Route path="/journal" element={<Journal />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/energy-level" element={<EnergyLevel />} />
 
             <Route element={<ProtectedRoute />}>
               <Route path="/presence" element={<Presence />} />
+              <Route path="/presence-logs" element={<PresenceLogs />} />
               <Route path="/ritual" element={<Ritual />} />
               <Route path="/matrix" element={<Matrix />} />
               <Route path="/ritual-logs" element={<RitualLogs />} />
