@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,37 +20,39 @@ import RitualLogs from "./pages/RitualLogs";
 import JournalHistory from "./pages/JournalHistory";
 import CosmicTutor from "./pages/CosmicTutor";
 
-const queryClient = new QueryClient();
+const App: React.FC = () => {
+  const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<Index />} />
-            <Route path="/meditation" element={<Meditation />} />
-            <Route path="/journal" element={<Journal />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/energy-level" element={<EnergyLevel />} />
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/meditation" element={<Meditation />} />
+              <Route path="/journal" element={<Journal />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/energy-level" element={<EnergyLevel />} />
 
-            <Route element={<ProtectedRoute />}>
-              <Route path="/presence" element={<Presence />} />
-              <Route path="/ritual" element={<Ritual />} />
-              <Route path="/matrix" element={<Matrix />} />
-              <Route path="/ritual-logs" element={<RitualLogs />} />
-              <Route path="/journal-history" element={<JournalHistory />} />
-              <Route path="/cosmic-tutor" element={<CosmicTutor />} />
+              <Route element={<ProtectedRoute />}>
+                <Route path="/presence" element={<Presence />} />
+                <Route path="/ritual" element={<Ritual />} />
+                <Route path="/matrix" element={<Matrix />} />
+                <Route path="/ritual-logs" element={<RitualLogs />} />
+                <Route path="/journal-history" element={<JournalHistory />} />
+                <Route path="/cosmic-tutor" element={<CosmicTutor />} />
+              </Route>
+
+              <Route path="*" element={<NotFound />} />
             </Route>
-
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

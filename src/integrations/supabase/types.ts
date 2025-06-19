@@ -57,6 +57,74 @@ export type Database = {
         }
         Relationships: []
       }
+      meditation_logs: {
+        Row: {
+          completed_at: string
+          created_at: string
+          description: string
+          duration_minutes: number
+          id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          created_at?: string
+          description: string
+          duration_minutes: number
+          id?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          created_at?: string
+          description?: string
+          duration_minutes?: number
+          id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      presence_logs: {
+        Row: {
+          challenge_id: string
+          completed_at: string
+          created_at: string
+          description: string
+          id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          completed_at?: string
+          created_at?: string
+          description: string
+          id?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          completed_at?: string
+          created_at?: string
+          description?: string
+          id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "presence_logs_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
