@@ -42,20 +42,20 @@ export const ChallengeInfoTooltip = ({ title, description }: ChallengeInfoToolti
               onClick={() => setIsOpen(false)}
             />
             
-            {/* Tooltip positioned relative to the card area */}
+            {/* Tooltip */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.8, y: -10 }}
+              initial={{ opacity: 0, scale: 0.8, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, y: -10 }}
-              className="absolute bottom-full left-0 mb-2 w-72 max-w-[90vw] p-4 bg-terminal border border-primary/20 rounded-lg shadow-lg z-50"
+              exit={{ opacity: 0, scale: 0.8, y: 10 }}
+              className="absolute bottom-full right-0 mb-2 w-80 max-w-[90vw] p-4 bg-terminal border border-primary/20 rounded-lg shadow-lg z-50"
             >
               <div className="space-y-2">
                 <h4 className="font-bold text-primary text-sm uppercase">{title} Benefits</h4>
                 <p className="text-xs text-foreground/90 leading-relaxed">{benefits}</p>
               </div>
               
-              {/* Arrow pointing down */}
-              <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-primary/20" />
+              {/* Arrow */}
+              <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-primary/20" />
             </motion.div>
           </>
         )}

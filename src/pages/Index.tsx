@@ -1,255 +1,285 @@
-
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { TerminalCard } from "@/components/ui/TerminalCard";
 import { RitualCircle } from "@/components/home/RitualCircle";
+import { motion } from "framer-motion";
+import { useState } from "react";
+import { Loader2, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
-import { useAppStore } from "@/lib/store";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { Zap, Calendar, Activity, Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Database } from "@/integrations/supabase/types";
-import { useEffect, useState } from "react";
+import { useAppStore } from "@/lib/store";
+import { toast } from "sonner";
 
-type MeditationLog = Database['public']['Tables']['meditation_logs']['Row'];
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
 
-const Index = () => {
-  const { user } = useAuth();
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1 }
+};
+
+const MotionCard = motion(TerminalCard);
+
+export default function Index() {
+  const { getAverageEnergyLevel } = useAppStore();
+  const [onboardingStatus, setOnboardingStatus] = useState<"idle" | "processing" | "synchronizing" | "complete" | "optimized">("idle");
+  const [showParticles, setShowParticles] = useState(false);
   const navigate = useNavigate();
-  const { energyLevels, focusPoints, getAverageEnergyLevel } = useAppStore();
-  const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number }>>([]);
+  const { user, loading: authLoading } = useAuth();
 
-  // Fetch recent meditation logs
-  const { data: recentMeditations = [] } = useQuery({
-    queryKey: ['recent_meditations_home', user?.id],
+  const { data: todaysRituals, isLoading: isLoadingRituals } = useQuery({
+    queryKey: ['ritualLogsToday', user?.id],
     queryFn: async () => {
-      if (!user) return [];
-      const { data, error } = await supabase
-        .from('meditation_logs')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('completed_at', { ascending: false })
-        .limit(2);
+        if (!user) return [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
 
-      if (error) return [];
-      return data as MeditationLog[];
+        const { data, error } = await supabase
+            .from('ritual_logs')
+            .select('id', { count: 'exact' })
+            .eq('user_id', user.id)
+            .gte('completed_at', today.toISOString())
+            .lt('completed_at', tomorrow.toISOString());
+
+        if (error) {
+            console.error('Error fetching today\'s rituals:', error);
+            return [];
+        }
+        return data;
     },
     enabled: !!user,
   });
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2
-      }
-    }
-  };
+  const dailyRitualCompleted = todaysRituals?.length || 0;
+  const dailyRitualTotal = 3;
+  const energyLevel = getAverageEnergyLevel();
 
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1 }
-  };
-
-  const averageEnergy = getAverageEnergyLevel();
-
-  const handleEnergyLevelClick = () => {
+  const handleEnergyClick = () => {
     if (!user) {
-      toast.error("Please log in to access Energy Level calibration");
+      toast.error("Please log in to access energy calibration");
       return;
     }
-
-    // Create particle animation
-    const newParticles = Array.from({ length: 15 }, (_, i) => ({
-      id: i,
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight,
-    }));
-    setParticles(newParticles);
-
-    // Clear particles after animation
-    setTimeout(() => setParticles([]), 2000);
-
-    // Navigate after a short delay to let animation play
-    setTimeout(() => navigate('/energy-level'), 500);
+    setShowParticles(true);
+    setTimeout(() => {
+      navigate('/energy-level');
+    }, 800);
+    setTimeout(() => {
+      setShowParticles(false);
+    }, 1000);
   };
 
-  const handleOnboardingClick = () => {
-    if (user) {
-      toast.success("Welcome Program", {
-        description: "Your consciousness matrix is synchronized."
-      });
+  const handleOnboarding = () => {
+    if (!user) {
+      if (onboardingStatus !== 'idle') return;
+      setOnboardingStatus("processing");
+      setTimeout(() => {
+        setOnboardingStatus("synchronizing");
+        setTimeout(() => {
+          setOnboardingStatus("complete");
+          setTimeout(() => {
+            navigate('/auth');
+          }, 1000);
+        }, 2000);
+      }, 1000);
     } else {
-      navigate('/auth');
+      toast.success("Welcome Program");
     }
   };
+
+  const getButtonContent = () => {
+    if (user) {
+      return (
+        <>
+          <Check className="text-green-500" />
+          <span className="text-green-500">Boarding Complete :)</span>
+        </>
+      );
+    }
+    
+    switch (onboardingStatus) {
+      case "processing":
+        return "PROCESSING...";
+      case "synchronizing":
+        return (
+          <>
+            <Loader2 className="animate-spin" />
+            SYNCHRONIZING BIOFEEDBACK
+          </>
+        );
+      case "complete":
+        return (
+          <>
+            <Check />
+            ONBOARDING COMPLETE
+          </>
+        );
+      case "optimized":
+        return "SYSTEM OPTIMIZED";
+      case "idle":
+      default:
+        return "Initiate Onboarding";
+    }
+  };
+  
+  const getButtonClass = () => {
+    if (user) {
+      return "bg-green-500/10 border-green-500 text-green-500 hover:bg-green-500/20";
+    }
+    
+    switch (onboardingStatus) {
+      case 'idle':
+        return "border-primary text-primary hover:bg-primary hover:text-primary-foreground";
+      case 'processing':
+      case 'synchronizing':
+      case 'complete':
+        return "bg-accent text-accent-foreground cursor-not-allowed";
+      case 'optimized':
+        return "bg-green-500 hover:bg-green-400 text-primary-foreground cursor-not-allowed";
+      default:
+        return "";
+    }
+  }
 
   return (
     <motion.div 
-      className="text-center relative overflow-hidden"
+      className="text-center"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
     >
-      {/* Particle Animation */}
-      {particles.map((particle) => (
-        <motion.div
-          key={particle.id}
-          className="absolute w-2 h-2 bg-primary rounded-full pointer-events-none z-10"
-          initial={{ 
-            x: particle.x, 
-            y: particle.y, 
-            scale: 0,
-            opacity: 0 
-          }}
-          animate={{ 
-            x: window.innerWidth / 2, 
-            y: window.innerHeight / 2, 
-            scale: [0, 1, 0],
-            opacity: [0, 1, 0] 
-          }}
-          transition={{ 
-            duration: 2,
-            ease: "easeInOut"
-          }}
-        />
-      ))}
-
-      <motion.h1 
-        variants={itemVariants}
-        className="font-display text-4xl md:text-6xl lg:text-8xl uppercase mb-4 glitch" 
-        data-text="Cosmic Rituals"
-      >
-        Cosmic Rituals
-      </motion.h1>
-      
-      <motion.p 
-        variants={itemVariants}
-        className="text-muted-foreground mb-8 max-w-2xl mx-auto"
-      >
-        Welcome to the liminal space between consciousness and void. Here, ancient wisdom meets quantum uncertainty.
-      </motion.p>
-
-      {user && (
-        <motion.div variants={itemVariants} className="mb-8">
-          <TerminalCard className="max-w-md mx-auto p-6 text-left">
-            <h3 className="font-bold uppercase tracking-widest text-primary mb-4">System Status</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Energy Level:</span>
-                <span className="font-mono text-primary">{averageEnergy}%</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Focus Points:</span>
-                <span className="font-mono text-green-400">{focusPoints}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Status:</span>
-                <span className="font-mono text-primary">SYNCHRONIZED</span>
-              </div>
-            </div>
-          </TerminalCard>
-        </motion.div>
+      {/* Particle animation overlay */}
+      {showParticles && (
+        <div className="fixed inset-0 z-50 pointer-events-none">
+          {Array.from({ length: 50 }).map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-primary rounded-full"
+              initial={{
+                x: window.innerWidth * 0.7,
+                y: window.innerHeight * 0.4,
+                scale: 0,
+                opacity: 1,
+              }}
+              animate={{
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                scale: [0, 1, 0],
+                opacity: [1, 0.8, 0],
+              }}
+              transition={{
+                duration: 0.8,
+                delay: i * 0.02,
+                ease: "easeOut",
+              }}
+            />
+          ))}
+        </div>
       )}
 
-      <motion.div 
-        variants={itemVariants}
-        className="mb-8"
-      >
+      <div className="-mt-10 md:-mt-6 pt-0.5">
         <RitualCircle />
+      </div>
+      
+      <motion.h1 className="font-display text-2xl uppercase tracking-widest" variants={itemVariants}>
+        Welcome, Traveler
+      </motion.h1>
+      <motion.p className="text-muted-foreground mt-2 text-sm" variants={itemVariants}>
+        SYSTEM STATUS: OPERATIONAL
+      </motion.p>
+      <motion.p className="text-foreground/80 mt-4 max-w-md mx-auto" variants={itemVariants}>
+        Your presence has been detected in this quantum terminal. Proceed with curiosity.
+      </motion.p>
+      
+      <motion.div variants={itemVariants} className="mt-6">
+        <Button 
+          variant="outline" 
+          className={cn("uppercase font-bold tracking-wider px-8 py-6", getButtonClass())}
+          onClick={handleOnboarding}
+          disabled={!user && onboardingStatus !== 'idle'}
+        >
+          {getButtonContent()}
+        </Button>
       </motion.div>
 
       <motion.div 
-        variants={itemVariants}
-        className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-8"
+        className="grid grid-cols-2 gap-4 mt-10 max-w-2xl mx-auto"
+        variants={containerVariants}
       >
-        <TerminalCard className="p-4 text-left">
-          <div className="flex items-center gap-3 mb-3">
-            <Zap className="w-5 h-5 text-primary" />
-            <h3 className="font-bold uppercase tracking-widest text-sm">Energy Level</h3>
-          </div>
-          <p className="text-muted-foreground text-sm mb-3">
-            Current: {averageEnergy}% synchronization
-          </p>
-          <Button
-            onClick={handleEnergyLevelClick}
-            variant="outline"
-            size="sm"
-            className="w-full text-primary border-primary/50"
-            disabled={!user}
-          >
-            {user ? "Calibrate Energy" : "Login Required"}
-          </Button>
-        </TerminalCard>
-
-        <TerminalCard className="p-4 text-left">
-          <div className="flex items-center gap-3 mb-3">
-            <Calendar className="w-5 h-5 text-primary" />
-            <h3 className="font-bold uppercase tracking-widest text-sm">Daily Ritual</h3>
-          </div>
-          <p className="text-muted-foreground text-sm mb-3">
-            Connect with cosmic frequencies
-          </p>
-          <Button
-            onClick={() => navigate('/ritual')}
-            variant="outline"
-            size="sm"
-            className="w-full text-primary border-primary/50"
-            disabled={!user}
-          >
-            {user ? "Begin Ritual" : "Login Required"}
-          </Button>
-        </TerminalCard>
+        <MotionCard variants={itemVariants} className="text-left p-4">
+          <h3 className="font-bold uppercase tracking-wider text-muted-foreground text-xs">Daily Ritual</h3>
+          {authLoading || isLoadingRituals ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : user ? (
+            dailyRitualCompleted === 0 ? (
+              <p className="text-sm font-bold mt-2 text-destructive uppercase animate-pulse">Error: waiting ritual</p>
+            ) : (
+              <p className={cn(
+                  "text-lg font-bold mt-1",
+                  dailyRitualCompleted >= dailyRitualTotal ? "text-green-500" : "text-foreground"
+              )}>
+                Completed: <span className={cn(dailyRitualCompleted >= dailyRitualTotal ? "text-green-500" : "text-primary")}>{dailyRitualCompleted}/{dailyRitualTotal}</span>
+              </p>
+            )
+          ) : (
+            <p className="text-sm font-bold mt-2 text-destructive uppercase animate-pulse">Error: Auth Required</p>
+          )}
+        </MotionCard>
+        <MotionCard 
+          variants={itemVariants} 
+          className={cn(
+            "text-left p-4 transition-colors",
+            user ? "cursor-pointer hover:bg-accent/50" : "cursor-not-allowed opacity-60"
+          )}
+          onClick={handleEnergyClick}
+        >
+          <h3 className="font-bold uppercase tracking-wider text-muted-foreground text-xs">Energy Level</h3>
+          {authLoading ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : user ? (
+            <p className="text-lg font-bold mt-1 text-primary">{energyLevel}%</p>
+          ) : (
+            <p className="text-sm font-bold mt-2 text-destructive uppercase animate-pulse">Error: Auth Required</p>
+          )}
+        </MotionCard>
       </motion.div>
 
-      {/* Recent Activity Section */}
-      {user && recentMeditations.length > 0 && (
-        <motion.div variants={itemVariants} className="max-w-2xl mx-auto mb-8">
-          <TerminalCard className="p-4 text-left">
-            <div className="flex items-center gap-3 mb-4">
-              <Activity className="w-5 h-5 text-primary" />
-              <h3 className="font-bold uppercase tracking-widest text-sm">Recent Activity</h3>
-            </div>
-            <div className="space-y-3">
-              {recentMeditations.map((meditation) => (
-                <div key={meditation.id} className="flex justify-between items-center py-2 border-b border-primary/10 last:border-b-0">
-                  <div>
-                    <p className="font-mono text-sm text-primary">{meditation.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {meditation.duration_minutes} min • {new Date(meditation.completed_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="text-xs text-green-400 font-mono">COMPLETED</div>
-                </div>
-              ))}
-            </div>
-          </TerminalCard>
+      {!authLoading && user && (
+        <motion.div variants={itemVariants} className="mt-8 max-w-2xl mx-auto flex justify-center gap-8">
+            <Link to="/ritual-logs" className="font-mono text-xs uppercase text-primary hover:underline">
+              Past Rituals Logs
+            </Link>
+            <Link to="/journal-history" className="font-mono text-xs uppercase text-primary hover:underline">
+              Journal History
+            </Link>
         </motion.div>
       )}
 
-      <motion.div 
-        variants={itemVariants}
-        className="space-y-4"
-      >
-        <Button 
-          onClick={handleOnboardingClick}
-          className={`w-64 ${user ? 'bg-green-500 hover:bg-green-600 animate-pulse text-white' : ''}`}
-          variant={user ? "default" : "outline"}
-        >
-          {user ? "Boarding Complete :)" : "Initiate Onboarding"}
-        </Button>
-        
-        {!user && (
-          <p className="text-muted-foreground text-sm">
-            Begin your journey into the quantum realm of consciousness
-          </p>
-        )}
-      </motion.div>
+      {!authLoading && user && (
+        <motion.div className="mt-10 max-w-2xl mx-auto text-left" variants={containerVariants}>
+          <h2 className="font-display text-xl uppercase tracking-widest mb-4">Recent Activity</h2>
+          <MotionCard variants={itemVariants} className="mb-4 p-4">
+            <div className="flex justify-between items-center text-xs text-muted-foreground uppercase">
+              <span>Absurd Meditation #47</span>
+              <span>2h ago</span>
+            </div>
+            <p className="mt-2 text-foreground/90 text-sm">"Imagine you're a sentient dust particle in a cosmic library"</p>
+          </MotionCard>
+          <MotionCard variants={itemVariants} className="p-4">
+            <div className="flex justify-between items-center text-xs text-muted-foreground uppercase">
+              <span>Presence Challenge</span>
+              <span>5h ago</span>
+            </div>
+            <p className="mt-2 text-foreground/90 text-sm">"Notice 3 unexpected textures in your environment"</p>
+          </MotionCard>
+        </motion.div>
+      )}
     </motion.div>
   );
-};
-
-export default Index;
+}
