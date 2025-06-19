@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { TerminalCard } from "@/components/ui/TerminalCard";
-import { ArrowLeft, CheckCircle } from "lucide-react";
+import { X, CheckCircle } from "lucide-react";
 import { WaveAnimation } from "@/components/meditation/WaveAnimation";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,11 +17,10 @@ const MeditationSession = () => {
   
   const duration = parseInt(urlDuration || "13");
   const [timeLeft, setTimeLeft] = useState(duration * 60);
-  const [isActive, setIsActive] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
 
   useEffect(() => {
-    if (!isActive || isCompleted) return;
+    if (isCompleted) return;
 
     if (timeLeft <= 0) {
       setIsCompleted(true);
@@ -34,7 +33,7 @@ const MeditationSession = () => {
     }, 1000);
 
     return () => clearInterval(timerId);
-  }, [isActive, timeLeft, isCompleted]);
+  }, [timeLeft, isCompleted]);
 
   const handleComplete = async () => {
     if (!user || !title || !description) return;
@@ -48,10 +47,10 @@ const MeditationSession = () => {
       });
 
       if (error) throw error;
-      toast.success("Meditation completed and logged into the cosmic void.");
+      toast.success("Meditation integrated into the cosmic consciousness.");
     } catch (error) {
       console.error('Error logging meditation:', error);
-      toast.error("Failed to log meditation to the cosmic records.");
+      toast.error("Failed to archive meditation in the void.");
     }
   };
 
@@ -61,69 +60,121 @@ const MeditationSession = () => {
     return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
   };
 
-  const handleStart = () => {
-    setIsActive(true);
-  };
-
   const handleCancel = () => {
     navigate(-1);
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Background Animation */}
       <div className="fixed inset-0 z-0">
         <WaveAnimation />
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 max-w-md w-full text-center">
-        <TerminalCard className="p-6 mb-6 bg-terminal/90 backdrop-blur-sm">
-          <h1 className="font-display text-xl uppercase glitch mb-4" data-text={title ? decodeURIComponent(title) : "Meditation"}>
-            {title ? decodeURIComponent(title) : "Meditation"}
-          </h1>
-          
-          <p className="text-sm text-foreground/80 mb-6">
-            {description ? decodeURIComponent(description) : "Focus on your breathing and let the cosmic waves guide you."}
-          </p>
+      {/* Cancel Button - Abstract and minimalist */}
+      <motion.div 
+        className="absolute top-6 right-6 z-20"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+      >
+        <Button 
+          onClick={handleCancel} 
+          variant="ghost"
+          size="icon"
+          className="bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 text-white/80 hover:text-white rounded-full w-12 h-12"
+        >
+          <X className="w-5 h-5" />
+        </Button>
+      </motion.div>
 
-          <div className="mb-6">
-            <div className="text-4xl font-mono mb-2">
-              {formatTime(timeLeft)}
-            </div>
-            <div className="text-xs text-muted-foreground uppercase tracking-wider">
-              {duration} minute session
-            </div>
-          </div>
+      {/* Main Content */}
+      <div className="relative z-10 text-center">
+        {!isCompleted ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1 }}
+            className="space-y-8"
+          >
+            {/* Meditation Title */}
+            <motion.h1 
+              className="font-display text-2xl md:text-3xl text-white/90 uppercase tracking-widest"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 1 }}
+            >
+              {title ? decodeURIComponent(title) : "Quantum Meditation"}
+            </motion.h1>
 
-          {!isActive && !isCompleted && (
-            <Button onClick={handleStart} className="w-full mb-4">
-              Begin Meditation
-            </Button>
-          )}
-
-          {isCompleted && (
-            <motion.div
+            {/* Countdown */}
+            <motion.div 
+              className="text-6xl md:text-8xl font-mono text-white font-light tracking-wider"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="mb-4"
+              transition={{ delay: 0.8, duration: 1 }}
             >
-              <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-2" />
-              <p className="text-green-400 font-bold">Session Complete</p>
-              <p className="text-xs text-muted-foreground">Your consciousness has been expanded</p>
+              {formatTime(timeLeft)}
             </motion.div>
-          )}
 
-          <Button 
-            onClick={handleCancel} 
-            variant="outline" 
-            size="sm"
-            className="w-full"
+            {/* Focus, Breath Text */}
+            <motion.div
+              className="space-y-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.2, duration: 1 }}
+            >
+              <motion.p 
+                className="text-xl md:text-2xl text-pink-300/80 font-light tracking-widest uppercase"
+                animate={{ 
+                  opacity: [0.6, 1, 0.6],
+                  scale: [1, 1.02, 1]
+                }}
+                transition={{ 
+                  duration: 4, 
+                  repeat: Infinity, 
+                  ease: "easeInOut" 
+                }}
+              >
+                Focus
+              </motion.p>
+              <motion.p 
+                className="text-lg md:text-xl text-purple-300/70 font-light tracking-widest uppercase"
+                animate={{ 
+                  opacity: [0.7, 1, 0.7],
+                  scale: [1, 1.01, 1]
+                }}
+                transition={{ 
+                  duration: 3.5, 
+                  repeat: Infinity, 
+                  ease: "easeInOut",
+                  delay: 1
+                }}
+              >
+                Breathe
+              </motion.p>
+            </motion.div>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="text-center space-y-6"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            {isCompleted ? "Return to Meditations" : "Cancel Session"}
-          </Button>
-        </TerminalCard>
+            <CheckCircle className="w-20 h-20 text-green-400 mx-auto" />
+            <div>
+              <p className="text-2xl text-green-400 font-bold uppercase tracking-wider">Session Complete</p>
+              <p className="text-lg text-white/70 mt-2">Consciousness expanded. Reality updated.</p>
+            </div>
+            <Button 
+              onClick={handleCancel} 
+              variant="outline" 
+              className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
+            >
+              Return to Meditations
+            </Button>
+          </motion.div>
+        )}
       </div>
     </div>
   );

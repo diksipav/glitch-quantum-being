@@ -6,55 +6,49 @@ import { motion, AnimatePresence } from "framer-motion";
 interface ChallengeInfoTooltipProps {
   title: string;
   description: string;
+  generatedInfo?: string;
 }
 
-const challengeBenefits: Record<string, string> = {
-  "SENSORY AWARENESS": "Enhances mindfulness, sharpens focus, and connects you deeply with your present environment through heightened sensory perception.",
-  "TEMPORAL ANCHOR": "Develops present-moment awareness, reduces anxiety about future/past, and creates mental stability through regular grounding practices.",
-  "PERIPHERAL EXPANSION": "Improves spatial awareness, reduces tunnel vision thinking, and enhances your ability to notice subtle changes in your environment.",
-  "ACTIVE LISTENING": "Deepens empathy, improves relationships, and cultivates patience while reducing reactive communication patterns.",
-  "MINDFUL TOUCH": "Grounds you in physical reality, reduces dissociation, and enhances your connection to the material world through tactile awareness.",
-  "BREATH OBSERVATION": "Regulates nervous system, improves emotional stability, and creates a foundation for deeper meditative states through conscious breathing.",
-  "SOUND MAPPING": "Develops acute auditory awareness, reduces mental noise, and cultivates present-moment attention through sound exploration.",
-  "MICRO-MOVEMENT": "Increases body awareness, improves coordination, and builds connection between conscious intention and physical expression.",
-};
-
-const generateBenefitInfo = (title: string, description: string) => {
-  const exactMatch = challengeBenefits[title.toUpperCase()];
-  if (exactMatch) return exactMatch;
-  
-  // Generate contextual benefits based on keywords
+const generateContextualInfo = (title: string, description: string) => {
   const lowerDesc = description.toLowerCase();
   const lowerTitle = title.toLowerCase();
   
   if (lowerDesc.includes('sound') || lowerDesc.includes('listen') || lowerDesc.includes('hear')) {
-    return "Develops auditory mindfulness, improves focus through sound awareness, and creates deeper connection to your acoustic environment.";
+    return "This auditory awareness practice enhances your ability to distinguish subtle sound layers, creating deeper present-moment anchoring through acoustic mindfulness.";
   }
   
   if (lowerDesc.includes('breath') || lowerDesc.includes('breathing')) {
-    return "Regulates nervous system, calms the mind, and builds a foundation for present-moment awareness through conscious breathing practices.";
+    return "Conscious breathing serves as a bridge between voluntary and involuntary awareness, regulating your nervous system while establishing rhythmic presence.";
   }
   
   if (lowerDesc.includes('touch') || lowerDesc.includes('feel') || lowerDesc.includes('texture')) {
-    return "Grounds consciousness in physical sensation, reduces dissociation, and enhances your connection to the material present moment.";
+    return "Tactile awareness grounds consciousness in physical reality, reducing mental dissociation and creating tangible connection to the present moment.";
   }
   
   if (lowerDesc.includes('observe') || lowerDesc.includes('watch') || lowerDesc.includes('see')) {
-    return "Sharpens visual awareness, reduces mental distractions, and cultivates non-judgmental observation skills for enhanced mindfulness.";
+    return "Visual mindfulness develops non-judgmental observation skills, training your attention to witness without automatically categorizing or analyzing.";
   }
   
   if (lowerDesc.includes('time') || lowerDesc.includes('moment') || lowerTitle.includes('temporal')) {
-    return "Develops temporal awareness, reduces anxiety about past/future, and anchors consciousness firmly in the present moment.";
+    return "Temporal awareness practices dissolve the illusion of past/future fixation, anchoring consciousness firmly in the only moment that truly exists.";
+  }
+
+  if (lowerDesc.includes('movement') || lowerDesc.includes('body') || lowerDesc.includes('physical')) {
+    return "Embodied awareness integrates mind-body connection, using physical sensation as a gateway to present-moment consciousness.";
+  }
+
+  if (lowerDesc.includes('space') || lowerDesc.includes('room') || lowerDesc.includes('environment')) {
+    return "Spatial awareness expands peripheral consciousness beyond tunnel vision, cultivating 360-degree present-moment attention.";
   }
   
-  // Default fallback
-  return "This practice helps cultivate present-moment awareness, enhances mindfulness, and strengthens your connection to the here and now through focused attention.";
+  // Default contextual response
+  return "This practice cultivates heightened awareness by challenging habitual patterns of attention, creating new neural pathways for present-moment consciousness.";
 };
 
-export const ChallengeInfoTooltip = ({ title, description }: ChallengeInfoTooltipProps) => {
+export const ChallengeInfoTooltip = ({ title, description, generatedInfo }: ChallengeInfoTooltipProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const benefits = generateBenefitInfo(title, description);
+  const benefits = generatedInfo || generateContextualInfo(title, description);
 
   return (
     <div className="relative">
@@ -85,7 +79,7 @@ export const ChallengeInfoTooltip = ({ title, description }: ChallengeInfoToolti
               className="absolute bottom-full right-0 mb-2 w-80 max-w-[90vw] p-4 bg-terminal border border-primary/20 rounded-lg shadow-lg z-50"
             >
               <div className="space-y-2">
-                <h4 className="font-bold text-primary text-sm uppercase">{title} Benefits</h4>
+                <h4 className="font-bold text-primary text-sm uppercase">{title} • Benefits</h4>
                 <p className="text-xs text-foreground/90 leading-relaxed">{benefits}</p>
               </div>
               

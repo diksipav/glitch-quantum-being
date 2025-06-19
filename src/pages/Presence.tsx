@@ -129,14 +129,24 @@ const Presence = () => {
       const { error } = await supabase.from('user_challenges').update(updateObject).eq('id', id);
       if (error) throw error;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: async (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['user_challenges', user?.id] });
       if (variables.status === 'active') toast.success("New presence challenge initiated. Observe.");
       if (variables.status === 'rejected') toast.warning("Presence challenge rejected. It fades from your reality.");
       if (variables.status === 'not_started') toast.info("Presence challenge aborted.");
       if (variables.status === 'completed') {
-        toast.success("Presence challenge complete. Data integrated.");
+        // Log the completed challenge
         const completedChallenge = userChallenges?.find(c => c.id === variables.id);
+        if (completedChallenge?.challenges && user) {
+          await supabase.from('presence_logs').insert({
+            user_id: user.id,
+            challenge_id: completedChallenge.challenge_id,
+            title: completedChallenge.challenges.title,
+            description: completedChallenge.challenges.description,
+          });
+        }
+        
+        toast.success("Presence challenge complete. Data integrated.");
         if (completedChallenge?.is_daily) {
           addFocusPoints(10);
           toast.success("+10 FOCUS points acquired!", { description: "Your consciousness expands." });

@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { TerminalCard } from "@/components/ui/TerminalCard";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { MoreHorizontal, Plus, Play, Trash2, ArrowRight } from "lucide-react";
+import { MoreHorizontal, Plus, Play, Trash2, ArrowRight, Clock } from "lucide-react";
 import { ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +11,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Database } from "@/integrations/supabase/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 type MeditationLog = Database['public']['Tables']['meditation_logs']['Row'];
 
@@ -32,13 +40,17 @@ const itemVariants = {
 
 const MotionCard = motion(TerminalCard);
 
-const chartBaseData = Array.from({ length: 20 }, (_, i) => ({ value: 10 + Math.sin(i * 0.5) * 5 }));
+const chartBaseData = Array.from({ length: 30 }, (_, i) => ({ 
+  value: 10 + Math.sin(i * 0.3) * 8 + Math.cos(i * 0.2) * 5 
+}));
 
 const Meditation = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [duration, setDuration] = useState(13);
+  const [customDuration, setCustomDuration] = useState(13);
+  const [isCustomDialogOpen, setIsCustomDialogOpen] = useState(false);
   const [generatedMeditation, setGeneratedMeditation] = useState<{ title: string; description: string } | null>(null);
   const [animatedChartData, setAnimatedChartData] = useState(chartBaseData);
 
@@ -102,10 +114,15 @@ const Meditation = () => {
   useEffect(() => {
     let frameId: number;
     const animate = (time: number) => {
-      const newChartData = chartBaseData.map((d, i) => ({
-        ...d,
-        value: d.value + 3 * Math.sin(time / 800 + i / 3) + 2 * Math.cos(time / 600 + i / 2),
-      }));
+      const newChartData = chartBaseData.map((d, i) => {
+        const wave1 = Math.sin(time / 1000 + i * 0.3) * 8;
+        const wave2 = Math.cos(time / 1500 + i * 0.2) * 5;
+        const wave3 = Math.sin(time / 800 + i * 0.5) * 3;
+        return {
+          ...d,
+          value: d.value + wave1 + wave2 + wave3,
+        };
+      });
       setAnimatedChartData(newChartData);
       frameId = requestAnimationFrame(animate);
     };
@@ -115,6 +132,12 @@ const Meditation = () => {
 
   const handleDurationChange = (d: number) => {
     setDuration(d);
+  };
+
+  const handleCustomDuration = () => {
+    setDuration(customDuration);
+    setIsCustomDialogOpen(false);
+    toast.success(`Custom meditation time set: ${customDuration} minutes`);
   };
 
   const handleBeginClick = () => {
@@ -167,6 +190,36 @@ const Meditation = () => {
                   {d}:00
                 </Button>
               ))}
+              <Dialog open={isCustomDialogOpen} onOpenChange={setIsCustomDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-xs h-7 px-2">
+                    <Clock className="w-3 h-3 mr-1" />
+                    Custom
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Custom Meditation Duration</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="duration">Duration (minutes)</Label>
+                      <Input
+                        id="duration"
+                        type="number"
+                        min="1"
+                        max="120"
+                        value={customDuration}
+                        onChange={(e) => setCustomDuration(parseInt(e.target.value) || 1)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <Button onClick={handleCustomDuration} className="w-full">
+                      Set Duration
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
           <h4 className="mt-4 font-bold uppercase tracking-widest text-primary">{currentMeditation.title}</h4>
@@ -199,12 +252,19 @@ const Meditation = () => {
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={animatedChartData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
                     <defs>
-                      <linearGradient id="waveGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.1}/>
+                      <linearGradient id="flowingGradient" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="hsl(280, 70%, 60%)" stopOpacity={0.8}/>
+                        <stop offset="50%" stopColor="hsl(320, 70%, 70%)" stopOpacity={0.6}/>
+                        <stop offset="100%" stopColor="hsl(260, 70%, 60%)" stopOpacity={0.8}/>
                       </linearGradient>
                     </defs>
-                    <Area dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#waveGradient)" />
+                    <Area 
+                      dataKey="value" 
+                      stroke="hsl(300, 70%, 70%)" 
+                      strokeWidth={2} 
+                      fill="url(#flowingGradient)"
+                      strokeLinecap="round"
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
