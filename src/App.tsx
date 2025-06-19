@@ -33,12 +33,15 @@ const App: React.FC = () => {
             <Route element={<MainLayout />}>
               <Route path="/" element={<Index />} />
               <Route path="/meditation" element={<Meditation />} />
+              <Route path="/meditation-session/:duration/:title/:description" element={<MeditationSession />} />
+              <Route path="/meditation-logs" element={<MeditationLogs />} />
               <Route path="/journal" element={<Journal />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/energy-level" element={<EnergyLevel />} />
 
               <Route element={<ProtectedRoute />}>
                 <Route path="/presence" element={<Presence />} />
+                <Route path="/presence-logs" element={<PresenceLogs />} />
                 <Route path="/ritual" element={<Ritual />} />
                 <Route path="/matrix" element={<Matrix />} />
                 <Route path="/ritual-logs" element={<RitualLogs />} />

@@ -233,8 +233,8 @@ const Presence = () => {
     );
   };
   
-  const availableChallenges = otherChallenges.filter(c => c.status === 'not_started');
-  const completedChallenges = otherChallenges.filter(c => c.status === 'completed');
+  const availableChallenges = otherChallenges.filter(c => c.status === 'not_started').slice(0, 1); // Only show 1
+  const completedChallenges = otherChallenges.filter(c => c.status === 'completed').slice(0, 2); // Only show 2
   
   return (
     <motion.div className="text-center" initial="hidden" animate="visible" variants={containerVariants}>
@@ -269,7 +269,7 @@ const Presence = () => {
 
         {availableChallenges.length > 0 && (
             <>
-                 <h2 className="font-mono text-primary text-sm uppercase mt-8 border-t border-primary/20 pt-4">Available Presence Vectors</h2>
+                 <h2 className="font-mono text-primary text-sm uppercase mt-8 border-t border-primary/20 pt-4">Available Presence Vector</h2>
                 {availableChallenges.map(renderChallengeCard)}
             </>
         )}
@@ -282,7 +282,13 @@ const Presence = () => {
 
         {completedChallenges.length > 0 && (
             <>
-                <h2 className="font-mono text-muted-foreground text-sm uppercase mt-8 border-t border-primary/20 pt-4">Integration Log / Completed</h2>
+                <div className="flex justify-between items-center mt-8 border-t border-primary/20 pt-4">
+                  <h2 className="font-mono text-muted-foreground text-sm uppercase">Integration Log / Completed</h2>
+                  <Button onClick={() => navigate('/presence-logs')} variant="ghost" size="sm">
+                    <ArrowRight className="w-4 h-4 mr-1" />
+                    Past Presence Logs
+                  </Button>
+                </div>
                 {completedChallenges.map(renderChallengeCard)}
             </>
         )}

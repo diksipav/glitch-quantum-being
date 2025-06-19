@@ -14,12 +14,47 @@ const challengeBenefits: Record<string, string> = {
   "PERIPHERAL EXPANSION": "Improves spatial awareness, reduces tunnel vision thinking, and enhances your ability to notice subtle changes in your environment.",
   "ACTIVE LISTENING": "Deepens empathy, improves relationships, and cultivates patience while reducing reactive communication patterns.",
   "MINDFUL TOUCH": "Grounds you in physical reality, reduces dissociation, and enhances your connection to the material world through tactile awareness.",
+  "BREATH OBSERVATION": "Regulates nervous system, improves emotional stability, and creates a foundation for deeper meditative states through conscious breathing.",
+  "SOUND MAPPING": "Develops acute auditory awareness, reduces mental noise, and cultivates present-moment attention through sound exploration.",
+  "MICRO-MOVEMENT": "Increases body awareness, improves coordination, and builds connection between conscious intention and physical expression.",
+};
+
+const generateBenefitInfo = (title: string, description: string) => {
+  const exactMatch = challengeBenefits[title.toUpperCase()];
+  if (exactMatch) return exactMatch;
+  
+  // Generate contextual benefits based on keywords
+  const lowerDesc = description.toLowerCase();
+  const lowerTitle = title.toLowerCase();
+  
+  if (lowerDesc.includes('sound') || lowerDesc.includes('listen') || lowerDesc.includes('hear')) {
+    return "Develops auditory mindfulness, improves focus through sound awareness, and creates deeper connection to your acoustic environment.";
+  }
+  
+  if (lowerDesc.includes('breath') || lowerDesc.includes('breathing')) {
+    return "Regulates nervous system, calms the mind, and builds a foundation for present-moment awareness through conscious breathing practices.";
+  }
+  
+  if (lowerDesc.includes('touch') || lowerDesc.includes('feel') || lowerDesc.includes('texture')) {
+    return "Grounds consciousness in physical sensation, reduces dissociation, and enhances your connection to the material present moment.";
+  }
+  
+  if (lowerDesc.includes('observe') || lowerDesc.includes('watch') || lowerDesc.includes('see')) {
+    return "Sharpens visual awareness, reduces mental distractions, and cultivates non-judgmental observation skills for enhanced mindfulness.";
+  }
+  
+  if (lowerDesc.includes('time') || lowerDesc.includes('moment') || lowerTitle.includes('temporal')) {
+    return "Develops temporal awareness, reduces anxiety about past/future, and anchors consciousness firmly in the present moment.";
+  }
+  
+  // Default fallback
+  return "This practice helps cultivate present-moment awareness, enhances mindfulness, and strengthens your connection to the here and now through focused attention.";
 };
 
 export const ChallengeInfoTooltip = ({ title, description }: ChallengeInfoTooltipProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const benefits = challengeBenefits[title.toUpperCase()] || "This practice helps cultivate present-moment awareness and enhances your connection to the here and now.";
+  const benefits = generateBenefitInfo(title, description);
 
   return (
     <div className="relative">
