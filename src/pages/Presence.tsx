@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { TerminalCard } from "@/components/ui/TerminalCard";
 import { Button } from "@/components/ui/button";
-import { Check, Search, Loader2 } from "lucide-react";
+import { Check, Search, Loader2, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -29,6 +30,7 @@ const MotionCard = motion(TerminalCard);
 
 const Presence = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { addFocusPoints } = useAppStore();
 
@@ -303,4 +305,5 @@ const Presence = () => {
     </motion.div>
   );
 };
+
 export default Presence;
