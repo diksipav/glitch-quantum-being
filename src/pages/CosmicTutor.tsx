@@ -25,11 +25,14 @@ const CosmicTutor = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-    }
+    scrollToBottom();
   }, [messages]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -47,7 +50,7 @@ const CosmicTutor = () => {
       });
 
       if (error) {
-        throw error; // Throw the whole error object to be caught below
+        throw error;
       }
       
       const assistantMessage: Message = { role: 'assistant', content: data.reply };
@@ -71,19 +74,23 @@ const CosmicTutor = () => {
         toast.error(`Error from the cosmos: ${detailedMessage}`);
       }
       
-      setMessages(prev => prev.slice(0, -1)); // Remove user message if API call fails
+      setMessages(prev => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
     }
   };
   
   return (
-    <div className="max-w-3xl mx-auto h-[calc(100vh-150px)] flex flex-col">
+    <div className="max-w-3xl mx-auto h-[calc(100vh-120px)] flex flex-col">
        <h1 className="font-display text-2xl uppercase tracking-widest glitch mb-4 text-center" data-text="Cosmic Tutor">
         Cosmic Tutor
       </h1>
-      <TerminalCard className="flex-grow flex flex-col p-0">
-        <div ref={scrollAreaRef} className="flex-grow overflow-y-auto p-4 space-y-4">
+      <TerminalCard className="flex-grow flex flex-col p-0 min-h-0">
+        <div 
+          ref={scrollAreaRef} 
+          className="flex-grow overflow-y-auto p-4 space-y-4 min-h-0"
+          style={{ maxHeight: 'calc(100vh - 300px)' }}
+        >
             <AnimatePresence>
                 {messages.map((message, index) => (
                     <motion.div
@@ -94,8 +101,8 @@ const CosmicTutor = () => {
                         className={`flex items-start gap-3 ${message.role === 'user' ? 'justify-end' : ''}`}
                     >
                         {message.role === 'assistant' && <Sparkles className="w-6 h-6 text-primary flex-shrink-0 mt-1" />}
-                        <div className={`rounded-lg px-4 py-2 max-w-lg text-sm ${message.role === 'user' ? 'bg-primary/20' : 'bg-background'}`}>
-                            <p className="whitespace-pre-wrap">{message.content}</p>
+                        <div className={`rounded-lg px-4 py-2 max-w-lg text-sm break-words ${message.role === 'user' ? 'bg-primary/20' : 'bg-background'}`}>
+                            <p className="whitespace-pre-wrap break-words">{message.content}</p>
                         </div>
                         {message.role === 'user' && <User className="w-6 h-6 text-primary flex-shrink-0 mt-1" />}
                     </motion.div>
@@ -113,14 +120,15 @@ const CosmicTutor = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+            <div ref={messagesEndRef} />
         </div>
-        <div className="p-4 border-t border-primary/20">
+        <div className="p-4 border-t border-primary/20 flex-shrink-0">
             <form onSubmit={handleSendMessage} className="flex gap-2">
             <Textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Commune with the cosmos..."
-                className="bg-terminal border-primary/20 focus-visible:ring-primary flex-grow resize-none"
+                className="bg-terminal border-primary/20 focus-visible:ring-primary flex-grow resize-none min-h-[40px] max-h-[120px]"
                 rows={1}
                 disabled={isLoading}
                 onKeyDown={(e) => {
@@ -130,7 +138,7 @@ const CosmicTutor = () => {
                     }
                 }}
             />
-            <Button type="submit" variant="ghost" size="icon" disabled={isLoading || !input.trim()}>
+            <Button type="submit" variant="ghost" size="icon" disabled={isLoading || !input.trim()} className="flex-shrink-0">
                 <Send />
             </Button>
             </form>

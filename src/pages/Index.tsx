@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/lib/store";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -61,9 +62,66 @@ export default function Index() {
     enabled: !!user,
   });
 
+  // Fetch recent activity (meditation and presence logs)
+  const { data: recentActivity, isLoading: isLoadingActivity } = useQuery({
+    queryKey: ['recentActivity', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const [meditationLogs, presenceLogs] = await Promise.all([
+        supabase
+          .from('meditation_logs')
+          .select('title, completed_at, duration_minutes')
+          .eq('user_id', user.id)
+          .order('completed_at', { ascending: false })
+          .limit(3),
+        supabase
+          .from('presence_logs')
+          .select('title, completed_at, description')
+          .eq('user_id', user.id)
+          .order('completed_at', { ascending: false })
+          .limit(3)
+      ]);
+
+      const activities = [
+        ...(meditationLogs.data || []).map(log => ({
+          type: 'meditation' as const,
+          title: log.title,
+          description: `${log.duration_minutes} minute session`,
+          completed_at: log.completed_at
+        })),
+        ...(presenceLogs.data || []).map(log => ({
+          type: 'presence' as const,
+          title: log.title,
+          description: log.description.length > 50 ? `${log.description.substring(0, 50)}...` : log.description,
+          completed_at: log.completed_at
+        }))
+      ];
+
+      return activities
+        .sort((a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime())
+        .slice(0, 2);
+    },
+    enabled: !!user,
+  });
+
   const dailyRitualCompleted = todaysRituals?.length || 0;
   const dailyRitualTotal = 3;
   const energyLevel = getAverageEnergyLevel();
+
+  const getEnergyColor = (level: number) => {
+    if (level >= 80) return "text-green-400";
+    if (level >= 60) return "text-yellow-400";
+    if (level >= 40) return "text-orange-400";
+    return "text-red-400";
+  };
+
+  const getEnergyText = (level: number) => {
+    if (level >= 80) return "OPTIMAL";
+    if (level >= 60) return "STABLE";
+    if (level >= 40) return "MODERATE";
+    return "CRITICAL";
+  };
 
   const handleEnergyClick = () => {
     if (!user) {
@@ -243,7 +301,12 @@ export default function Index() {
         >
           <h3 className="font-bold uppercase tracking-wider text-muted-foreground text-xs">Energy Level</h3>
           {authLoading ? <Loader2 className="w-5 h-5 animate-spin mt-1" /> : user ? (
-            <p className="text-lg font-bold mt-1 text-primary">{energyLevel}%</p>
+            <div className="mt-1">
+              <p className={cn("text-lg font-bold", getEnergyColor(energyLevel))}>{energyLevel}%</p>
+              <p className={cn("text-xs font-bold uppercase tracking-wider", getEnergyColor(energyLevel))}>
+                {getEnergyText(energyLevel)}
+              </p>
+            </div>
           ) : (
             <p className="text-sm font-bold mt-2 text-destructive uppercase animate-pulse">Error: Auth Required</p>
           )}
@@ -264,20 +327,26 @@ export default function Index() {
       {!authLoading && user && (
         <motion.div className="mt-10 max-w-2xl mx-auto text-left" variants={containerVariants}>
           <h2 className="font-display text-xl uppercase tracking-widest mb-4">Recent Activity</h2>
-          <MotionCard variants={itemVariants} className="mb-4 p-4">
-            <div className="flex justify-between items-center text-xs text-muted-foreground uppercase">
-              <span>Absurd Meditation #47</span>
-              <span>2h ago</span>
+          {isLoadingActivity ? (
+            <div className="flex justify-center items-center h-32">
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
             </div>
-            <p className="mt-2 text-foreground/90 text-sm">"Imagine you're a sentient dust particle in a cosmic library"</p>
-          </MotionCard>
-          <MotionCard variants={itemVariants} className="p-4">
-            <div className="flex justify-between items-center text-xs text-muted-foreground uppercase">
-              <span>Presence Challenge</span>
-              <span>5h ago</span>
-            </div>
-            <p className="mt-2 text-foreground/90 text-sm">"Notice 3 unexpected textures in your environment"</p>
-          </MotionCard>
+          ) : recentActivity && recentActivity.length > 0 ? (
+            recentActivity.map((activity, index) => (
+              <MotionCard key={index} variants={itemVariants} className="mb-4 p-4">
+                <div className="flex justify-between items-center text-xs text-muted-foreground uppercase">
+                  <span>{activity.type === 'meditation' ? 'Absurd Meditation' : 'Presence Challenge'}</span>
+                  <span>{format(new Date(activity.completed_at), 'MMM dd, HH:mm')}</span>
+                </div>
+                <p className="mt-2 text-foreground/90 text-sm font-medium">{activity.title}</p>
+                <p className="mt-1 text-foreground/70 text-xs">{activity.description}</p>
+              </MotionCard>
+            ))
+          ) : (
+            <MotionCard variants={itemVariants} className="p-4 text-center text-muted-foreground">
+              No recent activity. Start your journey with meditation or presence challenges.
+            </MotionCard>
+          )}
         </motion.div>
       )}
     </motion.div>

@@ -1,10 +1,9 @@
-
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { TerminalCard } from "@/components/ui/TerminalCard";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronDown, Eye, Loader2, Send, Trash2 } from "lucide-react";
+import { ChevronDown, Eye, Loader2, Send, Trash2, Shuffle } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +21,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 const containerVariants = {
@@ -55,14 +61,32 @@ const fetchJournalEntries = async (userId: string) => {
   return data;
 };
 
+const generatePrompt = async () => {
+  const { data, error } = await supabase.functions.invoke("cosmic-tutor", {
+    body: { 
+      messages: [
+        {
+          role: "user", 
+          content: "Generate a single creative writing prompt that is surreal, thought-provoking, and encourages deep self-reflection. Make it poetic and mysterious. Keep it under 30 words."
+        }
+      ] 
+    },
+  });
+  
+  if (error) throw error;
+  return data.reply;
+};
+
 const Journal = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [content, setContent] = useState("");
-  const [prompt] = useState(
-    "Describe your current mental state as if it were a landscape on an alien planet."
+  const [promptType, setPromptType] = useState<"BASIC" | "AI">("BASIC");
+  const [currentPrompt, setCurrentPrompt] = useState(
+    "Let your ideas and emotions flow freely"
   );
   const [entryToDelete, setEntryToDelete] = useState<Tables<"journal_entries"> | null>(null);
+  const [isPromptDialogOpen, setIsPromptDialogOpen] = useState(false);
 
   const {
     data: entries,
@@ -110,13 +134,39 @@ const Journal = () => {
     }
   });
 
+  const { mutate: generateNewPrompt, isPending: isGeneratingPrompt } = useMutation({
+    mutationFn: generatePrompt,
+    onSuccess: (newPrompt) => {
+      setCurrentPrompt(newPrompt);
+      setPromptType("AI");
+      setIsPromptDialogOpen(false);
+      toast.success("New cosmic prompt materialized!");
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to generate prompt: ${error.message}`);
+    }
+  });
+
+  const handlePromptChange = (type: "BASIC" | "AI") => {
+    if (type === "BASIC") {
+      setCurrentPrompt("Let your ideas and emotions flow freely");
+      setPromptType("BASIC");
+      setIsPromptDialogOpen(false);
+    } else {
+      generateNewPrompt();
+    }
+  };
+
   const handleSave = () => {
     if (!content.trim()) {
       toast.info("Cannot save an empty entry.");
       return;
     }
-    saveEntry({ content, prompt });
+    saveEntry({ content, prompt: currentPrompt });
   };
+
+  // Only show first 2 entries
+  const limitedEntries = entries?.slice(0, 2);
 
   return (
     <motion.div
@@ -138,11 +188,50 @@ const Journal = () => {
           <h3 className="font-bold uppercase tracking-widest text-muted-foreground text-sm">
             Today's Prompt
           </h3>
-          <Button variant="ghost" size="sm" className="text-xs h-7">
-            CHANGE <ChevronDown className="w-4 h-4 ml-1" />
-          </Button>
+          <Dialog open={isPromptDialogOpen} onOpenChange={setIsPromptDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="text-xs h-7">
+                CHANGE <ChevronDown className="w-4 h-4 ml-1" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-terminal border-primary/20">
+              <DialogHeader>
+                <DialogTitle className="text-primary uppercase tracking-wider">Select Prompt Type</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left h-auto p-4"
+                  onClick={() => handlePromptChange("BASIC")}
+                >
+                  <div>
+                    <div className="font-bold text-primary">BASIC</div>
+                    <div className="text-sm text-muted-foreground">Let your ideas and emotions flow freely</div>
+                  </div>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left h-auto p-4"
+                  onClick={() => handlePromptChange("AI")}
+                  disabled={isGeneratingPrompt}
+                >
+                  <div className="flex items-center gap-2">
+                    {isGeneratingPrompt ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Shuffle className="w-4 h-4" />
+                    )}
+                    <div>
+                      <div className="font-bold text-primary">AI GENERATED</div>
+                      <div className="text-sm text-muted-foreground">Generate a cosmic prompt from the void</div>
+                    </div>
+                  </div>
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
-        <p className="mt-2 text-foreground/90">"{prompt}"</p>
+        <p className="mt-2 text-foreground/90">"{currentPrompt}"</p>
         <Textarea
           placeholder={user ? "BEGIN TRANSMISSION..." : "Log in to save your entry."}
           className="bg-terminal border-primary/20 focus-visible:ring-primary h-32 mt-4"
@@ -208,8 +297,8 @@ const Journal = () => {
               <Loader2 className="w-8 h-8 text-primary animate-spin" />
             </div>
           )}
-          {!isLoadingEntries && entries && entries.length > 0 &&
-            entries.map((entry: Tables<"journal_entries">) => (
+          {!isLoadingEntries && limitedEntries && limitedEntries.length > 0 &&
+            limitedEntries.map((entry: Tables<"journal_entries">) => (
               <MotionCard key={entry.id} variants={itemVariants} className="mb-4 p-4">
                 <div className="flex justify-between items-start gap-2">
                   <div className="flex-grow">
@@ -232,7 +321,7 @@ const Journal = () => {
                 </div>
               </MotionCard>
             ))}
-            {!isLoadingEntries && entries?.length === 0 && (
+            {!isLoadingEntries && limitedEntries?.length === 0 && (
                 <MotionCard variants={itemVariants} className="p-4 text-center text-muted-foreground">
                     No recent entries. Write one above to get started.
                 </MotionCard>

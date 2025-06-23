@@ -3,12 +3,175 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { TerminalCard } from "@/components/ui/TerminalCard";
 import { X, CheckCircle } from "lucide-react";
-import { WaveAnimation } from "@/components/meditation/WaveAnimation";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+// Abstract quantum meditation animation component
+const QuantumMeditationAnimation = () => {
+  return (
+    <div className="fixed inset-0 z-0 overflow-hidden">
+      {/* Flowing quantum particles */}
+      {Array.from({ length: 100 }).map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-1 h-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"
+          initial={{
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+            opacity: 0,
+          }}
+          animate={{
+            x: [
+              Math.random() * window.innerWidth,
+              Math.random() * window.innerWidth,
+              Math.random() * window.innerWidth,
+            ],
+            y: [
+              Math.random() * window.innerHeight,
+              Math.random() * window.innerHeight,
+              Math.random() * window.innerHeight,
+            ],
+            opacity: [0, 0.8, 0],
+            scale: [0, 1.5, 0],
+          }}
+          transition={{
+            duration: Math.random() * 10 + 15,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: Math.random() * 5,
+          }}
+        />
+      ))}
+
+      {/* Flowing energy streams */}
+      {Array.from({ length: 8 }).map((_, i) => (
+        <motion.div
+          key={`stream-${i}`}
+          className="absolute w-px h-32 bg-gradient-to-b from-transparent via-pink-400 to-transparent"
+          style={{
+            left: `${(i + 1) * 12}%`,
+            top: "20%",
+          }}
+          animate={{
+            scaleY: [0.5, 2, 0.5],
+            opacity: [0.3, 0.8, 0.3],
+            rotateZ: [0, 5, -5, 0],
+          }}
+          transition={{
+            duration: 4 + Math.random() * 3,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: i * 0.5,
+          }}
+        />
+      ))}
+
+      {/* Central quantum field */}
+      <motion.div
+        className="absolute top-1/2 left-1/2 w-96 h-96 rounded-full"
+        style={{
+          background: "radial-gradient(circle, rgba(255,20,147,0.1) 0%, rgba(138,43,226,0.05) 50%, transparent 100%)",
+          transform: "translate(-50%, -50%)",
+        }}
+        animate={{
+          scale: [1, 1.2, 1],
+          rotate: [0, 360],
+          opacity: [0.3, 0.6, 0.3],
+        }}
+        transition={{
+          duration: 20,
+          repeat: Infinity,
+          ease: "linear",
+        }}
+      />
+
+      {/* Geometric patterns */}
+      {Array.from({ length: 6 }).map((_, i) => (
+        <motion.div
+          key={`geo-${i}`}
+          className="absolute border border-purple-400/20"
+          style={{
+            width: `${60 + i * 20}px`,
+            height: `${60 + i * 20}px`,
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+          animate={{
+            rotate: [0, 360],
+            scale: [1, 1.1, 1],
+            opacity: [0.1, 0.3, 0.1],
+          }}
+          transition={{
+            duration: 15 + i * 2,
+            repeat: Infinity,
+            ease: "linear",
+            delay: i * 0.8,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+// Glitch text component for Focus/Breathe
+const GlitchText = ({ text, delay = 0 }: { text: string; delay?: number }) => {
+  const [isGlitching, setIsGlitching] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsGlitching(true);
+      setTimeout(() => setIsGlitching(false), 200);
+    }, 3000 + Math.random() * 2000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <motion.div
+      className="relative"
+      initial={{ opacity: 0, x: Math.random() * 100 - 50 }}
+      animate={{ 
+        opacity: [0, 1, 1, 0],
+        x: [Math.random() * 100 - 50, 0, 0, Math.random() * 100 - 50],
+      }}
+      transition={{
+        duration: 8,
+        repeat: Infinity,
+        delay,
+        ease: "easeInOut",
+      }}
+      style={{
+        position: "absolute",
+        top: `${Math.random() * 60 + 20}%`,
+        left: `${Math.random() * 60 + 20}%`,
+      }}
+    >
+      <motion.p
+        className={`text-lg md:text-xl font-light tracking-widest uppercase transition-all duration-200 ${
+          isGlitching 
+            ? "text-red-400 scale-110 blur-sm" 
+            : text === "Focus" 
+              ? "text-pink-300/80" 
+              : "text-purple-300/70"
+        }`}
+        animate={isGlitching ? {
+          x: [0, -2, 2, -1, 1, 0],
+          textShadow: [
+            "0 0 0px #ff0000",
+            "2px 0 0px #ff0000, -2px 0 0px #00ffff",
+            "0 0 0px #ff0000"
+          ]
+        } : {}}
+        transition={{ duration: 0.2 }}
+      >
+        {text}
+      </motion.p>
+    </motion.div>
+  );
+};
 
 const MeditationSession = () => {
   const { duration: urlDuration, title, description } = useParams();
@@ -67,11 +230,19 @@ const MeditationSession = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Background Animation */}
-      <div className="fixed inset-0 z-0">
-        <WaveAnimation />
-      </div>
+      <QuantumMeditationAnimation />
 
-      {/* Cancel Button - Abstract and minimalist */}
+      {/* Floating Focus/Breathe Text */}
+      {!isCompleted && (
+        <div className="fixed inset-0 pointer-events-none z-10">
+          <GlitchText text="Focus" delay={0} />
+          <GlitchText text="Breathe" delay={2} />
+          <GlitchText text="Focus" delay={4} />
+          <GlitchText text="Breathe" delay={6} />
+        </div>
+      )}
+
+      {/* Cancel Button */}
       <motion.div 
         className="absolute top-6 right-6 z-20"
         initial={{ opacity: 0 }}
@@ -82,7 +253,7 @@ const MeditationSession = () => {
           onClick={handleCancel} 
           variant="ghost"
           size="icon"
-          className="bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 text-white/80 hover:text-white rounded-full w-12 h-12"
+          className="bg-slate-800/40 backdrop-blur-sm border border-pink-400/30 hover:bg-pink-500/20 text-pink-300 hover:text-pink-200 rounded-full w-12 h-12 transition-all duration-300"
         >
           <X className="w-5 h-5" />
         </Button>
@@ -115,44 +286,6 @@ const MeditationSession = () => {
               transition={{ delay: 0.8, duration: 1 }}
             >
               {formatTime(timeLeft)}
-            </motion.div>
-
-            {/* Focus, Breath Text */}
-            <motion.div
-              className="space-y-2"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.2, duration: 1 }}
-            >
-              <motion.p 
-                className="text-xl md:text-2xl text-pink-300/80 font-light tracking-widest uppercase"
-                animate={{ 
-                  opacity: [0.6, 1, 0.6],
-                  scale: [1, 1.02, 1]
-                }}
-                transition={{ 
-                  duration: 4, 
-                  repeat: Infinity, 
-                  ease: "easeInOut" 
-                }}
-              >
-                Focus
-              </motion.p>
-              <motion.p 
-                className="text-lg md:text-xl text-purple-300/70 font-light tracking-widest uppercase"
-                animate={{ 
-                  opacity: [0.7, 1, 0.7],
-                  scale: [1, 1.01, 1]
-                }}
-                transition={{ 
-                  duration: 3.5, 
-                  repeat: Infinity, 
-                  ease: "easeInOut",
-                  delay: 1
-                }}
-              >
-                Breathe
-              </motion.p>
             </motion.div>
           </motion.div>
         ) : (
