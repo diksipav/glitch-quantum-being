@@ -14,35 +14,34 @@ const generateContextualInfo = (title: string, description: string) => {
   const lowerTitle = title.toLowerCase();
   
   if (lowerDesc.includes('sound') || lowerDesc.includes('listen') || lowerDesc.includes('hear')) {
-    return "This auditory awareness practice enhances your ability to distinguish subtle sound layers, creating deeper present-moment anchoring through acoustic mindfulness.";
+    return "Enhances auditory awareness and creates deeper present-moment anchoring through acoustic mindfulness. Develops ability to distinguish subtle sound layers and reduces mental noise.";
   }
   
   if (lowerDesc.includes('breath') || lowerDesc.includes('breathing')) {
-    return "Conscious breathing serves as a bridge between voluntary and involuntary awareness, regulating your nervous system while establishing rhythmic presence.";
+    return "Regulates nervous system and establishes rhythmic presence. Serves as a bridge between voluntary and involuntary awareness, promoting calm and centeredness.";
   }
   
   if (lowerDesc.includes('touch') || lowerDesc.includes('feel') || lowerDesc.includes('texture')) {
-    return "Tactile awareness grounds consciousness in physical reality, reducing mental dissociation and creating tangible connection to the present moment.";
+    return "Grounds consciousness in physical reality and reduces mental dissociation. Creates tangible connection to the present moment through tactile awareness.";
   }
   
   if (lowerDesc.includes('observe') || lowerDesc.includes('watch') || lowerDesc.includes('see')) {
-    return "Visual mindfulness develops non-judgmental observation skills, training your attention to witness without automatically categorizing or analyzing.";
+    return "Develops non-judgmental observation skills and trains attention to witness without automatically categorizing. Enhances visual mindfulness and peripheral awareness.";
   }
   
   if (lowerDesc.includes('time') || lowerDesc.includes('moment') || lowerTitle.includes('temporal')) {
-    return "Temporal awareness practices dissolve the illusion of past/future fixation, anchoring consciousness firmly in the only moment that truly exists.";
+    return "Dissolves past/future fixation and anchors consciousness in the present. Develops temporal awareness and helps break automatic thought patterns.";
   }
 
   if (lowerDesc.includes('movement') || lowerDesc.includes('body') || lowerDesc.includes('physical')) {
-    return "Embodied awareness integrates mind-body connection, using physical sensation as a gateway to present-moment consciousness.";
+    return "Integrates mind-body connection and uses physical sensation as a gateway to consciousness. Develops embodied awareness and somatic intelligence.";
   }
 
   if (lowerDesc.includes('space') || lowerDesc.includes('room') || lowerDesc.includes('environment')) {
-    return "Spatial awareness expands peripheral consciousness beyond tunnel vision, cultivating 360-degree present-moment attention.";
+    return "Expands peripheral consciousness beyond tunnel vision and cultivates 360-degree present-moment attention. Enhances spatial intelligence and environmental awareness.";
   }
   
-  // Default contextual response
-  return "This practice cultivates heightened awareness by challenging habitual patterns of attention, creating new neural pathways for present-moment consciousness.";
+  return "Cultivates heightened awareness by challenging habitual attention patterns. Creates new neural pathways for present-moment consciousness and enhances mindful observation.";
 };
 
 export const ChallengeInfoTooltip = ({ title, description, generatedInfo }: ChallengeInfoTooltipProps) => {
@@ -71,20 +70,20 @@ export const ChallengeInfoTooltip = ({ title, description, generatedInfo }: Chal
               onClick={() => setIsOpen(false)}
             />
             
-            {/* Tooltip */}
+            {/* Tooltip - Mobile optimized */}
             <motion.div
               initial={{ opacity: 0, scale: 0.8, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, y: 10 }}
-              className="absolute bottom-full right-0 mb-2 w-80 max-w-[90vw] p-4 bg-terminal border border-primary/20 rounded-lg shadow-lg z-50"
+              className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-72 max-w-[90vw] p-4 bg-terminal border border-primary/20 rounded-lg shadow-lg z-50 md:left-0 md:right-auto md:transform-none md:w-80"
             >
               <div className="space-y-2">
-                <h4 className="font-bold text-primary text-sm uppercase">{title} • Benefits</h4>
+                <h4 className="font-bold text-primary text-sm uppercase">{title} • Potential Benefits</h4>
                 <p className="text-xs text-foreground/90 leading-relaxed">{benefits}</p>
               </div>
               
               {/* Arrow */}
-              <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-primary/20" />
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-primary/20 md:left-6 md:transform-none" />
             </motion.div>
           </>
         )}
