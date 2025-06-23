@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          level: number
+          name: string
+          required_completions: number
+          ritual_name: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          level: number
+          name: string
+          required_completions?: number
+          ritual_name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          level?: number
+          name?: string
+          required_completions?: number
+          ritual_name?: string
+        }
+        Relationships: []
+      }
       challenges: {
         Row: {
           created_at: string
@@ -149,6 +179,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ritual_completion_tracking: {
+        Row: {
+          completion_count: number
+          created_at: string
+          id: string
+          last_completed_at: string | null
+          ritual_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completion_count?: number
+          created_at?: string
+          id?: string
+          last_completed_at?: string | null
+          ritual_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completion_count?: number
+          created_at?: string
+          id?: string
+          last_completed_at?: string | null
+          ritual_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ritual_logs: {
         Row: {
           completed_at: string
@@ -172,6 +232,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          created_at: string
+          id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          created_at?: string
+          id?: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          created_at?: string
+          id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_challenges: {
         Row: {
@@ -222,6 +314,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      update_achievements_and_tracking: {
+        Args: { p_user_id: string; p_ritual_name: string }
+        Returns: undefined
+      }
       update_streak_and_log_ritual: {
         Args: {
           p_user_id: string

@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { TerminalCard } from "@/components/ui/TerminalCard";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { RitualCircle } from "@/components/home/RitualCircle";
-import { Check, Play, Loader2 } from "lucide-react";
+import { Check, Play, Loader2, Award, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RitualSelection } from "@/components/ritual/RitualSelection";
 import {
@@ -17,6 +18,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -39,17 +46,13 @@ const itemVariants = {
 
 const MotionCard = motion(TerminalCard);
 
-const achievementsData = [
-  { text: "Connecting with yourself and with your breath", unlocked: true, loading: false },
-  { text: "Connecting with your feet", unlocked: true, loading: false },
-  { text: "Loading achievement", unlocked: false, loading: true },
-];
-
 const Ritual = () => {
   const [pageState, setPageState] = useState<'idle' | 'loading' | 'selecting' | 'running' | 'completed'>('idle');
   const [duration, setDuration] = useState(0); // in seconds
   const [timeLeft, setTimeLeft] = useState(0); // in seconds
   const [selectedRitual, setSelectedRitual] = useState("");
+  const [selectedAchievement, setSelectedAchievement] = useState<any>(null);
+  const [showAchievementDialog, setShowAchievementDialog] = useState(false);
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -71,6 +74,56 @@ const Ritual = () => {
     enabled: !!user,
   });
 
+  // Fetch user achievements
+  const { data: userAchievements, isLoading: isLoadingAchievements } = useQuery({
+    queryKey: ['userAchievements', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('user_achievements')
+        .select(`
+          id,
+          unlocked_at,
+          achievements (
+            id,
+            ritual_name,
+            level,
+            name,
+            description,
+            required_completions
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('unlocked_at', { ascending: false });
+      
+      if (error) {
+        console.error("Error fetching achievements:", error);
+        return [];
+      }
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  // Fetch ritual completion tracking
+  const { data: ritualTracking } = useQuery({
+    queryKey: ['ritualTracking', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('ritual_completion_tracking')
+        .select('*')
+        .eq('user_id', user.id);
+      
+      if (error) {
+        console.error("Error fetching ritual tracking:", error);
+        return [];
+      }
+      return data;
+    },
+    enabled: !!user,
+  });
+
   const updateRitualLogMutation = useMutation({
     mutationFn: async ({ ritual, durationInSeconds }: { ritual: string; durationInSeconds: number }) => {
         if (!user) throw new Error("User not found");
@@ -87,6 +140,8 @@ const Ritual = () => {
         queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
         queryClient.invalidateQueries({ queryKey: ['ritualLogs', user?.id] });
         queryClient.invalidateQueries({ queryKey: ['ritualLogsToday', user?.id] });
+        queryClient.invalidateQueries({ queryKey: ['userAchievements', user?.id] });
+        queryClient.invalidateQueries({ queryKey: ['ritualTracking', user?.id] });
     },
     onError: (error: Error) => {
         toast.error(`Failed to log ritual: ${error.message}`);
@@ -139,7 +194,50 @@ const Ritual = () => {
 
   const handleCancelSelection = () => setPageState('idle');
 
-  const unlockedAchievements = achievementsData.filter(a => a.unlocked).length;
+  const handleAchievementClick = (achievement: any) => {
+    setSelectedAchievement(achievement);
+    setShowAchievementDialog(true);
+  };
+
+  // Create achievement diamonds based on ritual tracking
+  const getAchievementDiamonds = () => {
+    if (!ritualTracking || !userAchievements) return [];
+    
+    const diamonds = [];
+    const ritualNames = ["Grounding Posture", "Breath Synchronization", "Spinal Waves", "Breath of Fire", 
+                        "Calisthenics", "Bouldering", "Yoga", "Skating", "Surf", "Animal Flow", "Running", "Ice Bath"];
+    
+    ritualNames.forEach(ritualName => {
+      const tracking = ritualTracking.find(t => t.ritual_name === ritualName);
+      const completions = tracking?.completion_count || 0;
+      const unlockedAchievements = userAchievements.filter(ua => ua.achievements.ritual_name === ritualName);
+      
+      // Show achievements based on completion count (every 3 completions)
+      const maxLevel = Math.floor(completions / 3);
+      for (let level = 1; level <= Math.max(maxLevel, 1); level++) {
+        const isUnlocked = unlockedAchievements.some(ua => ua.achievements.level === level);
+        const achievement = {
+          ritual_name: ritualName,
+          level,
+          completions: completions,
+          required: level * 3,
+          isUnlocked
+        };
+        
+        if (isUnlocked) {
+          const unlockedAchievement = unlockedAchievements.find(ua => ua.achievements.level === level);
+          achievement.name = unlockedAchievement?.achievements.name;
+          achievement.description = unlockedAchievement?.achievements.description;
+        }
+        
+        diamonds.push(achievement);
+      }
+    });
+    
+    return diamonds.slice(0, 12); // Show max 12 diamonds
+  };
+
+  const achievementDiamonds = getAchievementDiamonds();
 
   return (
     <motion.div
@@ -274,20 +372,66 @@ const Ritual = () => {
       <MotionCard variants={itemVariants} className="max-w-2xl mx-auto mt-8 text-left p-4">
          <div className="flex justify-between items-center mb-4">
            <h3 className="font-bold uppercase tracking-widest text-muted-foreground text-sm">Achievements</h3>
-           <p className="font-mono text-sm text-primary">{unlockedAchievements}/{achievementsData.length} UNLOCKED</p>
+           <p className="font-mono text-sm text-primary">{userAchievements?.length || 0} UNLOCKED</p>
          </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {achievementsData.map((achievement, i) => (
-              <div key={i} className={cn('aspect-square border-2 flex flex-col items-center justify-center p-4 text-center rounded-md', achievement.unlocked ? 'border-primary bg-primary/10' : 'border-border')}>
-                  {achievement.unlocked && <Check className="w-8 h-8 text-primary mb-2" />}
-                  {achievement.loading && <Loader2 className="w-8 h-8 text-primary/50 mb-2 animate-spin" />}
-                  <p className={cn("text-xs uppercase tracking-wider", achievement.unlocked ? 'text-primary' : 'text-muted-foreground', achievement.loading && 'animate-blink')}>
-                    {achievement.text}
-                  </p>
-              </div>
-          ))}
-        </div>
+        {isLoadingAchievements ? (
+          <div className="flex justify-center items-center h-32">
+            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-4 md:grid-cols-6 gap-4">
+            {achievementDiamonds.map((achievement, i) => (
+              <motion.button
+                key={`${achievement.ritual_name}-${achievement.level}`}
+                onClick={() => achievement.isUnlocked && handleAchievementClick(achievement)}
+                className={cn(
+                  'relative w-12 h-12 transform rotate-45 border-2 transition-all duration-300 cursor-pointer',
+                  achievement.isUnlocked 
+                    ? 'border-primary bg-primary/20 hover:bg-primary/30 hover:scale-110' 
+                    : 'border-border bg-muted/10 hover:border-muted-foreground/50'
+                )}
+                whileHover={{ scale: achievement.isUnlocked ? 1.1 : 1.05 }}
+                whileTap={{ scale: achievement.isUnlocked ? 0.95 : 1 }}
+              >
+                {achievement.isUnlocked && (
+                  <Award className="w-6 h-6 text-primary absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 -rotate-45" />
+                )}
+                {!achievement.isUnlocked && (
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 -rotate-45">
+                    <span className="text-xs text-muted-foreground font-mono">
+                      {achievement.completions}/{achievement.required}
+                    </span>
+                  </div>
+                )}
+              </motion.button>
+            ))}
+          </div>
+        )}
       </MotionCard>
+
+      <Dialog open={showAchievementDialog} onOpenChange={setShowAchievementDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 uppercase tracking-wider">
+              <Award className="w-5 h-5 text-primary" />
+              {selectedAchievement?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto transform rotate-45 border-2 border-primary bg-primary/20 relative mb-4">
+                <Award className="w-8 h-8 text-primary absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 -rotate-45" />
+              </div>
+              <p className="text-sm text-muted-foreground uppercase tracking-wider mb-2">
+                {selectedAchievement?.ritual_name} • Level {selectedAchievement?.level}
+              </p>
+            </div>
+            <p className="text-sm text-foreground/90 leading-relaxed text-center">
+              {selectedAchievement?.description}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 };
