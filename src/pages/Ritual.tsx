@@ -46,12 +46,22 @@ const itemVariants = {
 
 const MotionCard = motion(TerminalCard);
 
+interface AchievementDiamond {
+  ritual_name: string;
+  level: number;
+  completions: number;
+  required: number;
+  isUnlocked: boolean;
+  name?: string;
+  description?: string;
+}
+
 const Ritual = () => {
   const [pageState, setPageState] = useState<'idle' | 'loading' | 'selecting' | 'running' | 'completed'>('idle');
   const [duration, setDuration] = useState(0); // in seconds
   const [timeLeft, setTimeLeft] = useState(0); // in seconds
   const [selectedRitual, setSelectedRitual] = useState("");
-  const [selectedAchievement, setSelectedAchievement] = useState<any>(null);
+  const [selectedAchievement, setSelectedAchievement] = useState<AchievementDiamond | null>(null);
   const [showAchievementDialog, setShowAchievementDialog] = useState(false);
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -194,16 +204,16 @@ const Ritual = () => {
 
   const handleCancelSelection = () => setPageState('idle');
 
-  const handleAchievementClick = (achievement: any) => {
+  const handleAchievementClick = (achievement: AchievementDiamond) => {
     setSelectedAchievement(achievement);
     setShowAchievementDialog(true);
   };
 
   // Create achievement diamonds based on ritual tracking
-  const getAchievementDiamonds = () => {
+  const getAchievementDiamonds = (): AchievementDiamond[] => {
     if (!ritualTracking || !userAchievements) return [];
     
-    const diamonds = [];
+    const diamonds: AchievementDiamond[] = [];
     const ritualNames = ["Grounding Posture", "Breath Synchronization", "Spinal Waves", "Breath of Fire", 
                         "Calisthenics", "Bouldering", "Yoga", "Skating", "Surf", "Animal Flow", "Running", "Ice Bath"];
     
@@ -216,7 +226,7 @@ const Ritual = () => {
       const maxLevel = Math.floor(completions / 3);
       for (let level = 1; level <= Math.max(maxLevel, 1); level++) {
         const isUnlocked = unlockedAchievements.some(ua => ua.achievements.level === level);
-        const achievement = {
+        const achievement: AchievementDiamond = {
           ritual_name: ritualName,
           level,
           completions: completions,
@@ -226,8 +236,10 @@ const Ritual = () => {
         
         if (isUnlocked) {
           const unlockedAchievement = unlockedAchievements.find(ua => ua.achievements.level === level);
-          achievement.name = unlockedAchievement?.achievements.name;
-          achievement.description = unlockedAchievement?.achievements.description;
+          if (unlockedAchievement?.achievements) {
+            achievement.name = unlockedAchievement.achievements.name;
+            achievement.description = unlockedAchievement.achievements.description;
+          }
         }
         
         diamonds.push(achievement);
