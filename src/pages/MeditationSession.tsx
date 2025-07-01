@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -7,6 +6,8 @@ import { X, CheckCircle } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { SereneParticleAnimation } from "@/components/meditation/SereneParticleAnimation";
+import { WaveAnimation } from "@/components/meditation/WaveAnimation";
 
 // Abstract quantum meditation animation component
 const QuantumMeditationAnimation = () => {
@@ -181,6 +182,7 @@ const MeditationSession = () => {
   const duration = parseInt(urlDuration || "13");
   const [timeLeft, setTimeLeft] = useState(duration * 60);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [showGlitch, setShowGlitch] = useState(false);
 
   useEffect(() => {
     if (isCompleted) return;
@@ -197,6 +199,18 @@ const MeditationSession = () => {
 
     return () => clearInterval(timerId);
   }, [timeLeft, isCompleted]);
+
+  useEffect(() => {
+    // Glitch effect occasionally
+    const glitchInterval = setInterval(() => {
+      if (!isCompleted && Math.random() < 0.1) {
+        setShowGlitch(true);
+        setTimeout(() => setShowGlitch(false), 1000);
+      }
+    }, 5000);
+
+    return () => clearInterval(glitchInterval);
+  }, [isCompleted]);
 
   const handleComplete = async () => {
     if (!user || !title || !description) return;
@@ -220,6 +234,14 @@ const MeditationSession = () => {
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
+    
+    if (showGlitch) {
+      // Glitch the time display
+      const glitchChars = ['█', '▓', '▒', '░', '◆', '◇', '●', '○'];
+      const randomChar = () => glitchChars[Math.floor(Math.random() * glitchChars.length)];
+      return `${randomChar()}${randomChar()}:${randomChar()}${randomChar()}`;
+    }
+    
     return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
   };
 
@@ -227,10 +249,12 @@ const MeditationSession = () => {
     navigate(-1);
   };
 
+  const isQuantumPerspective = title && decodeURIComponent(title) === "Quantum Perspective";
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Background Animation */}
-      <QuantumMeditationAnimation />
+      {/* Background Animation - choose based on meditation type */}
+      {isQuantumPerspective ? <SereneParticleAnimation /> : <WaveAnimation />}
 
       {/* Floating Focus/Breathe Text */}
       {!isCompleted && (
@@ -270,7 +294,7 @@ const MeditationSession = () => {
           >
             {/* Meditation Title */}
             <motion.h1 
-              className="font-display text-2xl md:text-3xl text-white/90 uppercase tracking-widest"
+              className={`font-display text-2xl md:text-3xl text-white/90 uppercase tracking-widest ${showGlitch ? 'animate-pulse text-red-400' : ''}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5, duration: 1 }}
@@ -280,10 +304,10 @@ const MeditationSession = () => {
 
             {/* Countdown */}
             <motion.div 
-              className="text-6xl md:text-8xl font-mono text-white font-light tracking-wider"
+              className={`text-6xl md:text-8xl font-mono text-white font-light tracking-wider ${showGlitch ? 'text-red-400 scale-110' : ''}`}
               initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.8, duration: 1 }}
+              animate={{ scale: showGlitch ? 1.1 : 1, opacity: 1 }}
+              transition={{ delay: 0.8, duration: showGlitch ? 0.1 : 1 }}
             >
               {formatTime(timeLeft)}
             </motion.div>

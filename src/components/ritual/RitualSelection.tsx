@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { TerminalCard } from '@/components/ui/TerminalCard';
@@ -6,8 +5,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Wind, Activity, Flame, Dumbbell, Mountain, Flower2, Play, X, Waves, Rabbit, Footprints, Snowflake, PersonStanding, ArrowRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
+import { CustomTimeSelector } from './CustomTimeSelector';
 
 const rituals = [
     { name: "Grounding Posture", icon: Sparkles },
@@ -38,9 +36,7 @@ interface RitualSelectionProps {
 export const RitualSelection = ({ onStart, onCancel }: RitualSelectionProps) => {
     const [selectedRitual, setSelectedRitual] = useState<string | null>(null);
     const [selectedTimeOption, setSelectedTimeOption] = useState<number | 'custom' | null>(null);
-    const [customMinutes, setCustomMinutes] = useState('');
-    const [customSeconds, setCustomSeconds] = useState('');
-    const [step, setStep] = useState<'ritual' | 'time' | 'ready'>('ritual');
+    const [step, setStep] = useState<'ritual' | 'time' | 'custom' | 'ready'>('ritual');
 
     const handleRitualSelect = (ritual: string) => {
         setSelectedRitual(ritual);
@@ -49,25 +45,30 @@ export const RitualSelection = ({ onStart, onCancel }: RitualSelectionProps) => 
 
     const handleTimeSelect = (timeOption: number | 'custom') => {
         setSelectedTimeOption(timeOption);
-        setTimeout(() => setStep('ready'), 500);
-    };
-
-    const handleStart = () => {
-        if (selectedRitual) {
-            if (typeof selectedTimeOption === 'number') {
-                onStart(selectedRitual, selectedTimeOption);
-            } else if (selectedTimeOption === 'custom') {
-                const minutes = parseInt(customMinutes, 10) || 0;
-                const seconds = parseInt(customSeconds, 10) || 0;
-                const totalSeconds = minutes * 60 + seconds;
-                if (totalSeconds > 0) {
-                    onStart(selectedRitual, totalSeconds);
-                }
-            }
+        if (timeOption === 'custom') {
+            setTimeout(() => setStep('custom'), 500);
+        } else {
+            setTimeout(() => setStep('ready'), 500);
         }
     };
 
-    const isStartDisabled = !selectedRitual || selectedTimeOption === null || (selectedTimeOption === 'custom' && ((parseInt(customMinutes, 10) || 0) * 60 + (parseInt(customSeconds, 10) || 0)) <= 0);
+    const handleCustomTimeSelect = (totalSeconds: number) => {
+        setSelectedTimeOption(totalSeconds);
+        setTimeout(() => setStep('ready'), 300);
+    };
+
+    const handleCustomCancel = () => {
+        setSelectedTimeOption(null);
+        setStep('time');
+    };
+
+    const handleStart = () => {
+        if (selectedRitual && typeof selectedTimeOption === 'number') {
+            onStart(selectedRitual, selectedTimeOption);
+        }
+    };
+
+    const isStartDisabled = !selectedRitual || selectedTimeOption === null || selectedTimeOption === 'custom';
 
     const formatTime = (seconds: number) => {
         const minutes = Math.floor(seconds / 60);
@@ -149,28 +150,22 @@ export const RitualSelection = ({ onStart, onCancel }: RitualSelectionProps) => 
                                     </Label>
                                 </motion.button>
                             </RadioGroup>
-                            {selectedTimeOption === 'custom' && (
-                                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-4 flex items-center justify-center gap-2">
-                                    <Input 
-                                        type="number" 
-                                        placeholder="MM" 
-                                        className="w-20 text-center font-mono" 
-                                        value={customMinutes}
-                                        onChange={(e) => setCustomMinutes(e.target.value)}
-                                        min="0"
-                                    />
-                                    <span className="font-mono text-lg">:</span>
-                                    <Input 
-                                        type="number" 
-                                        placeholder="SS" 
-                                        className="w-20 text-center font-mono" 
-                                        value={customSeconds}
-                                        onChange={(e) => setCustomSeconds(e.target.value)}
-                                        min="0"
-                                        max="59"
-                                    />
-                                </motion.div>
-                            )}
+                        </TerminalCard>
+                    </motion.div>
+                )}
+
+                {step === 'custom' && (
+                    <motion.div
+                        key="custom"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                    >
+                        <TerminalCard>
+                            <CustomTimeSelector
+                                onTimeSelect={handleCustomTimeSelect}
+                                onCancel={handleCustomCancel}
+                            />
                         </TerminalCard>
                     </motion.div>
                 )}
@@ -202,7 +197,7 @@ export const RitualSelection = ({ onStart, onCancel }: RitualSelectionProps) => 
                             <p className="text-muted-foreground mb-2">
                                 {typeof selectedTimeOption === 'number' 
                                     ? formatTime(selectedTimeOption)
-                                    : `${customMinutes}:${customSeconds.padStart(2, '0')}`
+                                    : 'Custom Duration'
                                 }
                             </p>
                             <motion.p 

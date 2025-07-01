@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { TerminalCard } from "@/components/ui/TerminalCard";
@@ -28,6 +27,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { WalkingAnimation } from "@/components/ritual/WalkingAnimation";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -253,16 +253,19 @@ const Ritual = () => {
 
   return (
     <motion.div
-      className="text-center"
+      className="text-center relative"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
     >
-      <motion.h1 variants={itemVariants} className="font-display text-2xl md:text-4xl uppercase glitch" data-text="Ritual Movements">
+      {/* Walking Animation during ritual */}
+      {pageState === 'running' && <WalkingAnimation />}
+      
+      <motion.h1 variants={itemVariants} className="font-display text-2xl md:text-4xl uppercase glitch relative z-10" data-text="Ritual Movements">
         Ritual Movements
       </motion.h1>
       
-      <div className="min-h-[350px] flex flex-col justify-center items-center my-8">
+      <div className="min-h-[350px] flex flex-col justify-center items-center my-8 relative z-10">
         {pageState === 'idle' && (
             <motion.div variants={itemVariants} className="w-full flex flex-col items-center">
                 <RitualCircle />
